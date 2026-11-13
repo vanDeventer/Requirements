@@ -424,3 +424,46 @@ func TestSaveKeepsOperatorsReadable(t *testing.T) {
 		t.Errorf("file = %s", b)
 	}
 }
+
+func TestEveryFieldHasHelp(t *testing.T) {
+	m := loadExample(t)
+	var walk func(k Kind, prefix string, fs []FieldInfo)
+	walk = func(k Kind, prefix string, fs []FieldInfo) {
+		for _, f := range fs {
+			if f.Help == "" {
+				t.Errorf("%s.%s%s has no help text", k, prefix, f.Field)
+			}
+			walk(k, prefix+f.Field+".", f.Fields)
+		}
+	}
+	for _, k := range Kinds() {
+		walk(k, "", Fields(m, k))
+	}
+	fs := Fields(m, KindRequirement)
+	ctx := fs[slices.IndexFunc(fs, func(f FieldInfo) bool { return f.Field == "context" })]
+	if ctx.Type != "concept" || !ctx.Required || len(ctx.Values) != 3 {
+		t.Errorf("context = %+v", ctx)
+	}
+}
+
+func TestNextID(t *testing.T) {
+	m := loadExample(t)
+	for k, want := range map[Kind]string{
+		KindRequirement:  "REQ-008",
+		KindGoal:         "G-006",
+		KindVerification: "VER-005",
+		KindStakeholder:  "SH-001", // stakeholders use names, not numbers
+		KindIdea:         "IDEA-002",
+	} {
+		if got := NextID(m, k); got != want {
+			t.Errorf("NextID(%s) = %s, want %s", k, got, want)
+		}
+	}
+	m.Put(&Requirement{Element: Element{ID: "REQ-008"}, Text: "x", Context: "product"})
+	if got := NextID(m, KindRequirement); got != "REQ-009" {
+		t.Errorf("after REQ-008: %s", got)
+	}
+	if got := NextID(NewModel(), KindHazard); got != "HAZ-001" {
+		t.Errorf("empty model: %s", got)
+	}
+}

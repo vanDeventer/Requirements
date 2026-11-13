@@ -306,6 +306,32 @@ type editData struct {
 	Problems []string
 	Fields   []fieldHelp
 	Required []string
+	Form     formData // drives the form above the JSON
+}
+
+// formData is what the form script needs: the kind's fields and the
+// elements that references can point to.
+type formData struct {
+	Kind     req.Kind        `json:"kind"`
+	IsNew    bool            `json:"isNew"`
+	Fields   []req.FieldInfo `json:"fields"`
+	Elements []elemRef       `json:"elements"`
+}
+
+type elemRef struct {
+	ID   string   `json:"id"`
+	Name string   `json:"name,omitempty"`
+	Kind req.Kind `json:"kind"`
+}
+
+// form builds the form data; the caller holds a lock.
+func (s *Server) form(k req.Kind, isNew bool) formData {
+	f := formData{Kind: k, IsNew: isNew, Fields: req.Fields(s.m, k), Elements: []elemRef{}}
+	for _, e := range s.m.Elems() {
+		b := req.Base(e)
+		f.Elements = append(f.Elements, elemRef{b.ID, b.Name, req.KindOf(e)})
+	}
+	return f
 }
 
 type fieldHelp struct {
@@ -351,7 +377,7 @@ func (s *Server) editForm(w http.ResponseWriter, r *http.Request) {
 	}
 	k := req.KindOf(e)
 	fields, required := s.help(k)
-	s.render(w, http.StatusOK, "edit", "Edit "+string(id), editData{Kind: k, ID: id, JSON: pretty(e), Fields: fields, Required: required})
+	s.render(w, http.StatusOK, "edit", "Edit "+string(id), editData{Kind: k, ID: id, JSON: pretty(e), Fields: fields, Required: required, Form: s.form(k, false)})
 }
 
 func (s *Server) newForm(w http.ResponseWriter, r *http.Request) {
@@ -363,7 +389,7 @@ func (s *Server) newForm(w http.ResponseWriter, r *http.Request) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 	fields, required := s.help(k)
-	s.render(w, http.StatusOK, "edit", "New "+string(k), editData{Kind: k, JSON: skeleton(k), Fields: fields, Required: required})
+	s.render(w, http.StatusOK, "edit", "New "+string(k), editData{Kind: k, JSON: skeleton(s.m, k), Fields: fields, Required: required, Form: s.form(k, true)})
 }
 
 func (s *Server) editSave(w http.ResponseWriter, r *http.Request) {
@@ -401,7 +427,7 @@ func (s *Server) save(w http.ResponseWriter, r *http.Request, k req.Kind, oldID 
 			title = "New " + string(k)
 		}
 		s.render(w, http.StatusUnprocessableEntity, "edit", title,
-			editData{Kind: k, ID: oldID, JSON: text, Problems: problems, Fields: fields, Required: required})
+			editData{Kind: k, ID: oldID, JSON: text, Problems: problems, Fields: fields, Required: required, Form: s.form(k, oldID == "")})
 		return
 	}
 	if gitErr != nil {
@@ -589,9 +615,9 @@ func pretty(v any) string {
 
 // skeleton is the starting JSON for a new element of kind k: the id, name,
 // status and the kind's required fields.
-func skeleton(k req.Kind) string {
+func skeleton(m *req.Model, k req.Kind) string {
 	var b strings.Builder
-	b.WriteString("{\n\t\"id\": \"\",\n\t\"name\": \"\",\n\t\"status\": \"proposed\"")
+	b.WriteString("{\n\t\"id\": \"" + req.NextID(m, k) + "\",\n\t\"name\": \"\",\n\t\"status\": \"proposed\"")
 	t := reflect.TypeOf(req.New(k)).Elem()
 	for _, f := range req.Required(k) {
 		b.WriteString(",\n\t\"" + f + "\": " + zeroJSON(t, f))

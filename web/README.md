@@ -17,8 +17,13 @@ tracing and editing a model. Start it with `req serve`.
   coverage of every need, hazard, threat scenario and clause.
 - **Lists per kind**, **search**, and an **element page** with evidence,
   trace diagram, links in both directions and what a change would affect.
-- **Editing** of an element's JSON. A save that would add structural errors
-  is refused; a delete is refused while anything refers to the element.
+- **Editing** with a form: drop-down menus for concept values and links,
+  checkboxes, text boxes, a short explanation under each field and a
+  suggested ID for new elements. The form and the element's JSON below it
+  stay in step, and either can be edited ([static/form.js](static/form.js),
+  plain JavaScript). Without JavaScript, the JSON editor works on its own. A
+  save that would add structural errors is refused; a delete is refused
+  while anything refers to the element.
 - **Chat** with a local language model, and **Proposals** to approve or
   reject the changes it suggests.
 - **MCP** at `/mcp`, for other language-model clients.

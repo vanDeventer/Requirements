@@ -202,3 +202,49 @@ svg.trace .nname { fill: var(--text); }
 .proposal h2 { margin: 4px 0; }
 .proposal select { padding: 6px; border-radius: 8px; border: 1px solid var(--line); background: var(--panel); color: var(--text); font: inherit; }
 .proposal form { display: flex; gap: 6px; }
+
+/* element form */
+.js .no-js-only { display: none; }
+html:not(.js) .js-only { display: none; }
+.js .editor { grid-template-columns: 1fr; }
+.form { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 8px 18px 14px; margin: 12px 0 20px; }
+.form:empty { display: none; }
+.form .field { display: grid; grid-template-columns: 190px minmax(0, 1fr); gap: 2px 16px; padding: 8px 0; border-bottom: 1px solid var(--line); align-items: start; }
+.form .field > label, .form .field > .label { font-weight: 600; padding-top: 6px; }
+.form .field > .help-text { grid-column: 2; }
+.form .field > .items, .form .field > button { grid-column: 2; justify-self: start; }
+.form .field > .items { justify-self: stretch; }
+.form .req { color: var(--bad); }
+.help-text { margin: 2px 0 0; font-size: 12px; color: var(--muted); }
+.form input[type=text], .form input[type=number], .form input[type=datetime-local], .form select, .form textarea {
+	width: 100%; max-width: 640px; padding: 6px 9px; border: 1px solid var(--line); border-radius: 7px;
+	background: var(--bg); color: var(--text); font: inherit;
+}
+.form input[type=number] { max-width: 180px; }
+.form input[type=datetime-local] { max-width: 240px; }
+.form input[readonly] { opacity: .7; }
+.form input:invalid { border-color: var(--bad); }
+.form textarea { font-family: inherit; font-size: 14px; }
+.form .checks { display: flex; flex-wrap: wrap; gap: 4px 16px; padding-top: 6px; }
+.form .checks label { font-weight: normal; }
+.form .inline { display: inline-flex; align-items: center; gap: 4px; }
+.form fieldset { border: 1px solid var(--line); border-radius: 8px; padding: 4px 14px 8px; margin: 10px 0; }
+.form fieldset legend { font-weight: 600; padding: 0 4px; }
+.form fieldset .field { grid-template-columns: 150px minmax(0, 1fr); }
+.form fieldset .field:last-of-type { border-bottom: 0; }
+.form .items fieldset { margin: 4px 0 8px; }
+.form .more { margin-top: 10px; }
+.form .more > summary { cursor: pointer; color: var(--accent); padding: 6px 0; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.chips select { max-width: 340px; }
+.chip { display: inline-flex; align-items: center; gap: 6px; padding: 2px 4px 2px 10px; border: 1px solid var(--line); border-radius: 999px; background: var(--code-bg); font-size: 13px; max-width: 360px; }
+.chip .muted { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.chip.missing { border-color: var(--bad); }
+.chip .x { border: 0; background: transparent; color: var(--muted); padding: 0 6px; font-size: 16px; line-height: 1; cursor: pointer; }
+.chip .x:hover { color: var(--bad); }
+.small-button { padding: 3px 10px; font-size: 13px; margin-top: 4px; }
+.bad-text { color: var(--bad); }
+@media (max-width: 760px) {
+	.form .field, .form fieldset .field { grid-template-columns: 1fr; }
+	.form .field > .help-text, .form .field > .items, .form .field > button { grid-column: 1; }
+}

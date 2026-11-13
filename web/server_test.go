@@ -91,6 +91,8 @@ func TestPages(t *testing.T) {
 		{"/find?q=parking+brake", 200, []string{`href="/e/REQ-001"`}},
 		{"/e/REQ-001/edit", 200, []string{"<textarea", "&#34;id&#34;: &#34;REQ-001&#34;", "one of", "<code>product</code>"}},
 		{"/new/Assumption", 200, []string{"&#34;text&#34;: &#34;&#34;"}},
+		{"/new/Requirement", 200, []string{"&#34;id&#34;: &#34;REQ-008&#34;", `id="form-data"`, `"isNew":true`, `"help":"The requirement itself`, `"refersTo":["Goal"]`, `src="/static/form.js"`}},
+		{"/static/form.js", 200, []string{"function render()"}},
 		{"/static/style.css", 200, []string{"--bg"}},
 		{"/export/model.ttl", 200, []string{"oslc_rm:satisfiedBy"}},
 		{"/export/model.sysml", 200, []string{"satisfy 'REQ-001'"}},

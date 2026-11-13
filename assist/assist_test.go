@@ -365,12 +365,14 @@ func TestDescribe(t *testing.T) {
 		t.Fatal(got)
 	}
 	for _, w := range []string{
-		`{"field":"text","type":"string","required":true}`,
-		`{"field":"context","type":"concept","required":true,"values":["product","tool","training-data"]}`,
-		`{"field":"operationalizes","type":"list of element ID","refersTo":["Goal"]}`,
-		`"field":"criteria","type":"list of object","fields":[{"field":"metric","type":"concept","values":["installs-started-while-moving"`,
-		`{"field":"threshold","type":"number"}`,
-		`{"field":"approvedOn","type":"date-time`,
+		`{"field":"text","type":"string","multiline":true,"required":true,"help":"The requirement itself`,
+		`{"field":"context","type":"concept","required":true,"values":["product","tool","training-data"]`,
+		`{"field":"operationalizes","type":"element ID","list":true,"refersTo":["Goal"]`,
+		`"field":"criteria","type":"object","list":true`,
+		`{"field":"metric","type":"concept","values":["installs-started-while-moving"`,
+		`{"field":"threshold","type":"number"`,
+		`{"field":"approvedOn","type":"date-time"`,
+		`"suggestedID":"REQ-008"`,
 		"needs the concern safety",
 	} {
 		if !strings.Contains(got, w) {
