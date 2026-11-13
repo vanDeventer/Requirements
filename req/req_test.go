@@ -411,3 +411,16 @@ func TestLoadReportsBadFiles(t *testing.T) {
 		}
 	}
 }
+
+func TestSaveKeepsOperatorsReadable(t *testing.T) {
+	dir := t.TempDir()
+	r := &Requirement{Element: Element{ID: "R-1"}, Text: "a < b & c > d", Context: "product",
+		Criteria: []AcceptanceCriterion{{Metric: "m", Operator: "<=", Threshold: 1}}}
+	if err := Save(dir, r); err != nil {
+		t.Fatal(err)
+	}
+	b, _ := os.ReadFile(filepath.Join(dir, "requirements", "R-1.json"))
+	if !strings.Contains(string(b), `"operator": "<="`) || !strings.Contains(string(b), `"a < b & c > d"`) || !strings.HasSuffix(string(b), "}\n") {
+		t.Errorf("file = %s", b)
+	}
+}

@@ -154,12 +154,25 @@ func Delete(dir string, k Kind, id Ref) error {
 	return os.Remove(filepath.Join(dir, ki.dir, string(id)+".json"))
 }
 
+// Marshal writes v as indented JSON ending in a newline, without escaping
+// <, > and &, so that operators such as "<=" stay readable in files and
+// git diffs.
+func Marshal(v any) ([]byte, error) {
+	var buf bytes.Buffer
+	enc := json.NewEncoder(&buf)
+	enc.SetEscapeHTML(false)
+	enc.SetIndent("", "\t")
+	if err := enc.Encode(v); err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
+}
+
 func writeJSON(path string, v any) error {
-	b, err := json.MarshalIndent(v, "", "\t")
+	b, err := Marshal(v)
 	if err != nil {
 		return err
 	}
-	b = append(b, '\n')
 	if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
 		return err
 	}

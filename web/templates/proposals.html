@@ -1,0 +1,35 @@
+{{define "content"}}
+<h1>Proposals</h1>
+<p class="muted">Changes suggested by a language model, through the chat or MCP. Approving saves the element as proposed and records the model, the approver and the date in its provenance.</p>
+{{if not .Proposals}}<p class="muted">None pending.</p>{{end}}
+{{range .Proposals}}
+<section class="proposal">
+  <div class="titlebar">
+    <div>
+      <p class="kindline"><span class="dot {{kindclass .Kind}}"></span>{{.Kind}} · {{.ID}} · {{if .New}}new{{else}}change{{end}}{{with .Model}} · by {{.}}{{end}} · {{.Created.Format "2006-01-02 15:04"}} UTC</p>
+      <h2>{{if .Current}}<a href="/e/{{.ElemID}}">{{.ElemID}}</a>{{else}}{{.ElemID}}{{end}}: {{.Summary}}</h2>
+      {{with .Sources}}<p class="muted small">Sources: {{range $i, $s := .}}{{if $i}}, {{end}}{{$s}}{{end}}</p>{{end}}
+      {{if .Current}}<p class="small">
+        {{with .Changes.Changed}}Changes {{range $i, $f := .}}{{if $i}}, {{end}}<code>{{$f}}</code>{{end}}. {{end}}
+        {{with .Changes.Added}}Adds {{range $i, $f := .}}{{if $i}}, {{end}}<code>{{$f}}</code>{{end}}. {{end}}
+      </p>
+      {{with .Changes.Removed}}<p class="callout bad small">Removes {{range $i, $f := .}}{{if $i}}, {{end}}<code>{{$f}}</code>{{end}}. Check that this is intended before approving.</p>{{end}}{{end}}
+    </div>
+    <div class="actions">
+      <form method="post" action="/proposals/{{.ID}}/approve">
+        <select name="approver" aria-label="Approved by" required>
+          <option value="">Approved by…</option>
+          {{range $.Stakeholders}}<option value="{{.}}">{{.}}</option>{{end}}
+        </select>
+        <button type="submit">Approve</button>
+      </form>
+      <form method="post" action="/proposals/{{.ID}}/reject"><button type="submit" class="danger">Reject</button></form>
+    </div>
+  </div>
+  <div class="cols">
+    <section><h3>Now</h3>{{if .Current}}<pre class="json">{{.Current}}</pre>{{else}}<p class="muted">Doesn't exist yet.</p>{{end}}</section>
+    <section><h3>Proposed</h3><pre class="json">{{.Proposed}}</pre></section>
+  </div>
+</section>
+{{end}}
+{{end}}

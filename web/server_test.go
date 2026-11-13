@@ -13,6 +13,10 @@ import (
 
 // newServer serves a fresh copy of the example model.
 func newServer(t *testing.T, git bool) (*Server, string) {
+	return newServerWith(t, git, Options{})
+}
+
+func newServerWith(t *testing.T, git bool, opt Options) (*Server, string) {
 	t.Helper()
 	dir := filepath.Join(t.TempDir(), "model")
 	if err := os.CopyFS(dir, os.DirFS("../example/ota")); err != nil {
@@ -34,7 +38,8 @@ func newServer(t *testing.T, git bool) (*Server, string) {
 			}
 		}
 	}
-	s, err := New(Options{Dir: dir, Git: git})
+	opt.Dir, opt.Git = dir, git
+	s, err := New(opt)
 	if err != nil {
 		t.Fatal(err)
 	}

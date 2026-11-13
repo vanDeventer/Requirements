@@ -186,3 +186,19 @@ svg.trace .node.inactive { opacity: .45; }
 svg.trace .node:hover rect { fill: var(--code-bg); }
 svg.trace .nid { font-weight: 650; fill: var(--k, var(--text)); }
 svg.trace .nname { fill: var(--text); }
+
+/* chat */
+.chat { display: flex; flex-direction: column; gap: 12px; margin: 16px 0; }
+.turn { max-width: 860px; padding: 10px 14px; border-radius: 10px; background: var(--panel); border: 1px solid var(--line); }
+.turn.user { align-self: flex-end; background: var(--code-bg); }
+.turn .text { white-space: pre-wrap; }
+.call { margin-top: 6px; font-size: 13px; }
+.call summary { cursor: pointer; }
+.call summary .muted { font-family: ui-monospace, Menlo, monospace; font-size: 12px; }
+.call pre { white-space: pre-wrap; word-break: break-word; max-height: 240px; overflow: auto; background: var(--code-bg); padding: 8px; border-radius: 6px; }
+.call.failed summary code { color: var(--bad); }
+.ask { position: sticky; bottom: 0; background: var(--bg); padding: 8px 0; }
+.proposal { border: 1px solid var(--line); border-radius: 10px; background: var(--panel); padding: 4px 16px 8px; margin: 16px 0; }
+.proposal h2 { margin: 4px 0; }
+.proposal select { padding: 6px; border-radius: 8px; border: 1px solid var(--line); background: var(--panel); color: var(--text); font: inherit; }
+.proposal form { display: flex; gap: 6px; }

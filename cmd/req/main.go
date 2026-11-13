@@ -26,21 +26,26 @@
 //	                 to install in a store, or gap checks to run on demand.
 //	                 To -o or standard output; -base sets the IRI prefix
 //	                 and -package the SysML package name
-//	serve            web UI on -addr (default 127.0.0.1:8080); with -git,
-//	                 every save is committed
+//	serve            web UI on -addr (default 127.0.0.1:8080), with the MCP
+//	                 endpoint at /mcp; with -git, every save is committed;
+//	                 with -llm-model, a chat page using a local model server
+//	mcp              MCP server over stdio, for Claude Code, Theia and others
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"flag"
 	"fmt"
+	"net"
 	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
 	"time"
 
+	"github.com/vanDeventer/Requirements/assist"
 	"github.com/vanDeventer/Requirements/exchange"
 	"github.com/vanDeventer/Requirements/export"
 	"github.com/vanDeventer/Requirements/req"
@@ -50,7 +55,7 @@ import (
 func main() {
 	dir := flag.String("m", ".", "model directory")
 	asJSON := flag.Bool("json", false, "print results as JSON")
-	context := flag.String("context", "", "import: context of new requirements (tool, product or training-data)")
+	reqContext := flag.String("context", "", "import: context of new requirements (tool, product or training-data)")
 	prefix := flag.String("prefix", "", "import: prefix for new IDs, e.g. PLR-")
 	types := flag.String("types", "req", "import sphinx-needs: comma-separated need types to import")
 	dryRun := flag.Bool("n", false, "import: show what would change without writing")
@@ -60,8 +65,11 @@ func main() {
 	baseIRI := flag.String("base", export.DefaultBase, "export, serve: IRI prefix for elements in Turtle")
 	pkgName := flag.String("package", "Requirements", "export, serve: SysML package name")
 	computed := flag.Bool("computed", true, "export ttl: add the computed verdicts (isSatisfied, isVerified, isCovered)")
+	llmURL := flag.String("llm-url", "http://127.0.0.1:11434/v1", "serve: OpenAI-compatible model server (Ollama's default)")
+	llmModel := flag.String("llm-model", "", "serve: model name, e.g. qwen3:32b; enables the chat page")
+	sparqlURL := flag.String("sparql", "", "serve, mcp: graph store query endpoint for the sparql tool, e.g. http://localhost:7200/repositories/req")
 	flag.Usage = func() {
-		fmt.Fprintln(os.Stderr, "usage: req [-m dir] [-json] check | get ID | find WORDS | trace ID | impact ID | evidence ID | unverified [SPEC] | coverage ID | gate [SPEC] | import reqif|sphinx-needs FILE | export ttl|sysml|ontology|shapes|gaps | serve")
+		fmt.Fprintln(os.Stderr, "usage: req [-m dir] [-json] check | get ID | find WORDS | trace ID | impact ID | evidence ID | unverified [SPEC] | coverage ID | gate [SPEC] | import reqif|sphinx-needs FILE | export ttl|sysml|ontology|shapes|gaps | serve | mcp")
 		flag.PrintDefaults()
 	}
 	flag.Parse()
@@ -215,7 +223,7 @@ func main() {
 		if err != nil {
 			fail(err)
 		}
-		res, err := exchange.Merge(m, src, exchange.Options{Prefix: *prefix, Context: req.Ref(*context)})
+		res, err := exchange.Merge(m, src, exchange.Options{Prefix: *prefix, Context: req.Ref(*reqContext)})
 		if err != nil {
 			fail(err)
 		}
@@ -282,13 +290,26 @@ func main() {
 			fail(err)
 		}
 	case "serve":
-		srv, err := web.New(web.Options{Dir: *dir, Git: *useGit, Base: *baseIRI, Package: *pkgName})
+		opt := web.Options{Dir: *dir, Git: *useGit, Base: *baseIRI, Package: *pkgName, SPARQL: *sparqlURL}
+		if *llmModel != "" {
+			opt.LLM = &assist.LLM{URL: *llmURL, Model: *llmModel, APIKey: os.Getenv("REQ_LLM_KEY")}
+		}
+		if host, _, err := net.SplitHostPort(*addr); err == nil {
+			ip := net.ParseIP(host)
+			opt.LocalOnly = host == "localhost" || (ip != nil && ip.IsLoopback())
+		}
+		srv, err := web.New(opt)
 		if err != nil {
 			fail(err)
 		}
 		hs := &http.Server{Addr: *addr, Handler: srv, ReadHeaderTimeout: 10 * time.Second}
 		fmt.Fprintf(os.Stderr, "serving %s on http://%s\n", *dir, *addr)
 		fail(hs.ListenAndServe())
+	case "mcp":
+		tb := assist.NewToolbox(assist.DirSource(*dir), assist.NewProposals(*dir), assist.Options{SPARQL: *sparqlURL, Model: "MCP client"})
+		if err := tb.ServeStdio(context.Background(), os.Stdin, os.Stdout); err != nil {
+			fail(err)
+		}
 	default:
 		flag.Usage()
 		os.Exit(2)

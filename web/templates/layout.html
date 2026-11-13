@@ -20,6 +20,8 @@
   <nav class="side" aria-label="Kinds">
     <ul>
       <li><a href="/">Overview</a></li>
+      <li><a href="/chat">Chat{{if not .Chat}} <span class="muted small">(off)</span>{{end}}</a></li>
+      <li><a href="/proposals">Proposals{{if .Pending}} <span class="badge warn">{{.Pending}}</span>{{end}}</a></li>
       {{range .Kinds}}<li><a href="/kind/{{.}}"><span class="dot {{kindclass .}}"></span>{{.}}</a></li>
       {{end}}
     </ul>

@@ -94,6 +94,55 @@ The server has no accounts and is meant for a few editors. It listens on
 localhost by default; it refuses cross-site form posts, but put it behind
 authentication before exposing it on a network.
 
+## Language model assistant
+
+A language model can query the model and propose changes, through a chat
+page with a local model, or through MCP from any MCP client. The same tools
+serve both:
+
+| Tool | What it does |
+| --- | --- |
+| `get`, `find`, `list` | Look up elements |
+| `trace`, `impact` | Follow trace links; what a change or a false assumption affects |
+| `evidence`, `unverified`, `coverage`, `check` | Verdicts and gaps, computed by the model, never by the language model |
+| `sparql` | Read-only SPARQL on the graph store, with the ontology's inferences (with `-sparql`) |
+| `propose` | Suggest adding or changing one element |
+
+Proposals change nothing. They are checked against the model (a proposal
+that would add structural errors is refused), listed under **Proposals**
+with the fields they add, change or remove, and applied only when a person
+approves them. Approval records the language model, the approver and the
+date in the element's provenance. Satisfaction claims and verifications
+can't be proposed. Pending proposals live in `MODEL/.proposals/`; keep that
+directory out of git.
+
+### Chat with a local model
+
+Any OpenAI-compatible server works: Ollama, llama.cpp's `llama-server`,
+LM Studio or vLLM. Use a model that supports tool calling.
+
+```
+ollama pull qwen3:32b
+go run ./cmd/req -m MODEL -llm-model qwen3:32b serve
+go run ./cmd/req -m MODEL -llm-url http://127.0.0.1:1234/v1 -llm-model NAME serve   # LM Studio
+```
+
+Set `REQ_LLM_KEY` if the server needs an API key. Add
+`-sparql http://localhost:7200/repositories/REPO` to give the model the graph.
+
+### MCP
+
+`serve` answers MCP (Streamable HTTP, JSON responses) at `/mcp`. For clients
+that start a process, `req mcp` serves MCP over stdio and reads the model
+directory on every call, so it sees edits made in the web UI. For Claude Code:
+
+```
+claude mcp add requirements -- /path/to/req -m /path/to/MODEL mcp
+```
+
+On localhost, the server refuses requests whose `Host` isn't local, against
+DNS rebinding, and refuses cross-site browser posts.
+
 ## Importing from other tools
 
 ```

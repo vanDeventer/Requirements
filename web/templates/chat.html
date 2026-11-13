@@ -1,0 +1,33 @@
+{{define "content"}}
+<div class="titlebar">
+  <h1>Chat</h1>
+  {{if .Enabled}}<a class="button quiet" href="/chat">New conversation</a>{{end}}
+</div>
+{{if not .Enabled}}
+<p>The chat needs a local model server with an OpenAI-compatible API, such as Ollama, llama.cpp's <code>llama-server</code> or LM Studio. Start the server with, for example:</p>
+<pre class="json">req -m MODEL -llm-url http://127.0.0.1:11434/v1 -llm-model qwen3:32b serve</pre>
+<p class="muted">Pick a model that supports tool calling. The same tools are available to other clients over MCP at <code>/mcp</code>.</p>
+{{else}}
+<p class="muted small">{{.Model}} at {{.URL}}. Answers come from the model's tools; verdicts come from the evidence and coverage queries. Changes are proposals that wait for approval.</p>
+<div class="chat">
+  {{range .Entries}}
+  <div class="turn {{.Role}}">
+    {{if .HTML}}<div class="text">{{.HTML}}</div>{{end}}
+    {{range .Calls}}
+    <details class="call{{if .IsError}} failed{{end}}">
+      <summary><code>{{.Name}}</code> <span class="muted">{{.Args}}</span></summary>
+      <pre>{{.Result}}</pre>
+    </details>
+    {{end}}
+    {{with .Error}}<p class="callout bad">{{.}}</p>{{end}}
+  </div>
+  {{end}}
+  <span id="end"></span>
+</div>
+<form class="ask" method="post" action="/chat">
+  {{with .ID}}<input type="hidden" name="c" value="{{.}}">{{end}}
+  <textarea name="message" rows="3" placeholder="Ask about the model, e.g. Which hazards are not covered, and why?" aria-label="Message" autofocus></textarea>
+  <div class="actions"><button type="submit">Send</button><span class="muted small">Answers can take a while with a local model.</span></div>
+</form>
+{{end}}
+{{end}}

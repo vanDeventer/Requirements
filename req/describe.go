@@ -140,3 +140,17 @@ func Path(k Kind, id Ref) (string, bool) {
 	}
 	return ki.dir + "/" + string(id) + ".json", true
 }
+
+// Clone returns a copy of the model that can be changed without affecting m.
+// Elements are shared; Put replaces them rather than changing them, so this
+// is safe for trying out a change.
+func (m *Model) Clone() *Model {
+	c := NewModel()
+	for id, e := range m.elems {
+		c.elems[id] = e
+	}
+	for id, s := range m.schemes {
+		c.schemes[id] = s
+	}
+	return c
+}

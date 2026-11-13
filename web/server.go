@@ -25,6 +25,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/vanDeventer/Requirements/assist"
 	"github.com/vanDeventer/Requirements/export"
 	"github.com/vanDeventer/Requirements/req"
 )
@@ -39,15 +40,29 @@ type Options struct {
 
 	Base    string // IRI prefix for elements in the Turtle export
 	Package string // package name in the SysML export
+
+	LLM       *assist.LLM // local model server for the chat page; nil disables chat
+	SPARQL    string      // graph store query endpoint for the sparql tool; empty disables it
+	LocalOnly bool        // refuse requests whose Host isn't localhost (against DNS rebinding)
 }
 
 // Server is the web UI. It implements http.Handler.
 type Server struct {
-	opt     Options
-	mu      sync.RWMutex // guards m and the files in opt.Dir
-	m       *req.Model
-	pages   map[string]*template.Template
-	handler http.Handler
+	opt       Options
+	mu        sync.RWMutex // guards m and the files in opt.Dir
+	m         *req.Model
+	pages     map[string]*template.Template
+	handler   http.Handler
+	proposals *assist.Proposals
+	tools     *assist.Toolbox
+	chats     *chats
+}
+
+// Read gives the assistant's tools read access to the model.
+func (s *Server) Read(f func(*req.Model)) {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	f(s.m)
 }
 
 // New loads the model and prepares the server.
@@ -61,8 +76,13 @@ func New(opt Options) (*Server, error) {
 			return nil, fmt.Errorf("-git: %s is not in a git work tree: %s", opt.Dir, bytes.TrimSpace(out))
 		}
 	}
-	s := &Server{opt: opt, m: m, pages: map[string]*template.Template{}}
-	for _, p := range []string{"overview", "kind", "find", "element", "edit", "message"} {
+	s := &Server{opt: opt, m: m, pages: map[string]*template.Template{}, proposals: assist.NewProposals(opt.Dir), chats: newChats()}
+	model := ""
+	if opt.LLM != nil {
+		model = opt.LLM.Model
+	}
+	s.tools = assist.NewToolbox(s, s.proposals, assist.Options{SPARQL: opt.SPARQL, Model: model})
+	for _, p := range []string{"overview", "kind", "find", "element", "edit", "message", "chat", "proposals"} {
 		t, err := template.New("").Funcs(funcs).ParseFS(files, "templates/layout.html", "templates/"+p+".html")
 		if err != nil {
 			return nil, err
@@ -84,9 +104,18 @@ func New(opt Options) (*Server, error) {
 	mux.HandleFunc("POST /new/{kind}", s.newSave)
 	mux.HandleFunc("POST /reload", s.reload)
 	mux.HandleFunc("GET /export/{file}", s.export)
+	mux.Handle("/mcp", s.tools)
+	mux.HandleFunc("GET /chat", s.chatPage)
+	mux.HandleFunc("POST /chat", s.chatSend)
+	mux.HandleFunc("GET /proposals", s.proposalsPage)
+	mux.HandleFunc("POST /proposals/{id}/approve", s.approve)
+	mux.HandleFunc("POST /proposals/{id}/reject", s.reject)
 	// Browsers send Sec-Fetch-Site or Origin; this rejects cross-site POSTs,
 	// so another web page can't make the browser edit the model.
 	s.handler = http.NewCrossOriginProtection().Handler(mux)
+	if opt.LocalOnly {
+		s.handler = localOnly(s.handler)
+	}
 	return s, nil
 }
 
@@ -98,13 +127,16 @@ func (s *Server) render(w http.ResponseWriter, status int, page, title string, d
 		data = d
 	}
 	var buf bytes.Buffer
+	pending, _ := s.proposals.List()
 	err := s.pages[page].ExecuteTemplate(&buf, "layout", map[string]any{
-		"Title": title,
-		"Kinds": req.Kinds(),
-		"Git":   s.opt.Git,
-		"Dir":   s.opt.Dir,
-		"Base":  filepath.Base(s.opt.Dir),
-		"Data":  data,
+		"Pending": len(pending),
+		"Chat":    s.opt.LLM != nil,
+		"Title":   title,
+		"Kinds":   req.Kinds(),
+		"Git":     s.opt.Git,
+		"Dir":     s.opt.Dir,
+		"Base":    filepath.Base(s.opt.Dir),
+		"Data":    data,
 	})
 	if err != nil {
 		log.Printf("render %s: %v", page, err)
@@ -361,7 +393,7 @@ func (s *Server) newSave(w http.ResponseWriter, r *http.Request) {
 // oldID means a new element.
 func (s *Server) save(w http.ResponseWriter, r *http.Request, k req.Kind, oldID req.Ref) {
 	text := r.FormValue("json")
-	problems, id, gitErr := s.apply(k, oldID, []byte(text))
+	problems, id, gitErr := s.apply(k, oldID, []byte(text), "")
 	if len(problems) > 0 {
 		fields, required := s.help(k)
 		title := "Edit " + string(oldID)
@@ -380,8 +412,9 @@ func (s *Server) save(w http.ResponseWriter, r *http.Request, k req.Kind, oldID 
 }
 
 // apply decodes, checks, stores and commits one element. It returns the
-// problems that prevented the save, or the saved ID and any git error.
-func (s *Server) apply(k req.Kind, oldID req.Ref, data []byte) (problems []string, id req.Ref, gitErr error) {
+// problems that prevented the save, or the saved ID and any git error. An
+// empty msg gets a default commit message.
+func (s *Server) apply(k req.Kind, oldID req.Ref, data []byte, msg string) (problems []string, id req.Ref, gitErr error) {
 	e, err := req.Decode(k, data)
 	if err != nil {
 		return []string{"The JSON doesn't decode: " + err.Error()}, "", nil
@@ -423,11 +456,14 @@ func (s *Server) apply(k req.Kind, oldID req.Ref, data []byte) (problems []strin
 		undo()
 		return []string{"Saving the file failed: " + err.Error()}, "", nil
 	}
-	verb := "Edit"
-	if !existed {
-		verb = "Add"
+	if msg == "" {
+		verb := "Edit"
+		if !existed {
+			verb = "Add"
+		}
+		msg = fmt.Sprintf("%s %s %s", verb, id, req.Base(e).Name)
 	}
-	return nil, id, s.commit(k, id, fmt.Sprintf("%s %s %s", verb, id, req.Base(e).Name))
+	return nil, id, s.commit(k, id, msg)
 }
 
 func (s *Server) delete(w http.ResponseWriter, r *http.Request) {

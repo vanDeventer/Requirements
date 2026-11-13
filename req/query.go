@@ -266,6 +266,11 @@ func (ev *evidencer) of(id Ref) Evidence {
 			res.Reasons = append(res.Reasons, fmt.Sprintf("verified through refinement %s", o))
 		}
 	}
+	if !res.Verified {
+		for _, o := range ev.refiners[id] {
+			res.Reasons = append(res.Reasons, fmt.Sprintf("refined by %s, which is not verified", o))
+		}
+	}
 
 	// Decomposition: all active children needed.
 	if r != nil {
