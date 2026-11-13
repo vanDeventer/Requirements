@@ -38,6 +38,29 @@ go run ./cmd/req -m example/ota find parking brake
 
 Add `-json` for machine-readable output.
 
+## Web UI
+
+```
+go run ./cmd/req -m example/ota serve             # http://127.0.0.1:8080
+go run ./cmd/req -m MODEL -git -addr :8080 serve  # commit every save; listen on all interfaces
+```
+
+The overview shows structural errors, gaps, unverified requirements and the
+coverage of every need, hazard, threat scenario and clause. Each element page
+shows its evidence, a trace diagram, links in both directions and what a
+change to it would affect.
+
+Elements are edited as JSON, the same as their files, with the allowed
+fields, reference kinds and concept values listed beside the editor. A save
+is refused if it adds structural errors, and a delete is refused while
+anything still refers to the element. With `-git`, every save, addition and
+deletion is its own commit, authored by the git user of the machine running
+the server. **Reload** rereads the files, e.g. after a `git pull`.
+
+The server has no accounts and is meant for a few editors. It listens on
+localhost by default; it refuses cross-site form posts, but put it behind
+authentication before exposing it on a network.
+
 ## Importing from other tools
 
 ```

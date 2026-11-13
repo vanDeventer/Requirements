@@ -1,0 +1,39 @@
+{{define "layout"}}<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{.Title}} · Requirements</title>
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="/">Requirements</a>
+  <form class="search" action="/find" method="get" role="search">
+    <input type="search" name="q" placeholder="Search, or type an ID" aria-label="Search">
+  </form>
+  <form action="/reload" method="post">
+    <button type="submit" class="quiet" title="Reread the model files from disk, e.g. after a git pull">Reload</button>
+  </form>
+</header>
+<div class="shell">
+  <nav class="side" aria-label="Kinds">
+    <ul>
+      <li><a href="/">Overview</a></li>
+      {{range .Kinds}}<li><a href="/kind/{{.}}"><span class="dot {{kindclass .}}"></span>{{.}}</a></li>
+      {{end}}
+    </ul>
+    <p class="muted small" title="{{.Dir}}">Model: {{.Base}}{{if .Git}} · each save is a git commit{{end}}</p>
+  </nav>
+  <main>{{template "content" .Data}}</main>
+</div>
+</body>
+</html>{{end}}
+
+{{define "issues"}}<ul class="issues">{{range .}}<li><a href="/e/{{.ID}}">{{.ID}}</a>{{if .Field}}<code>.{{.Field}}</code>{{end}} {{.Message}}</li>{{end}}</ul>{{end}}
+
+{{define "edges"}}{{if .}}<ul class="edges">{{range .}}<li><a href="/e/{{.From}}">{{.From}}</a> <span class="rel">{{.Rel}}</span> <a href="/e/{{.To}}">{{.To}}</a>{{with .Via}} <span class="muted">via <a href="/e/{{.}}">{{.}}</a></span>{{end}}</li>{{end}}</ul>{{else}}<p class="muted">Nothing.</p>{{end}}{{end}}
+
+{{define "evidence"}}<li><a href="/e/{{.Requirement}}">{{.Requirement}}</a>
+  <span class="badge {{if .Verified}}ok{{else if .Satisfied}}warn{{else}}bad{{end}}">{{if .Verified}}verified{{else if .Satisfied}}satisfied, not verified{{else}}not satisfied{{end}}</span>
+  <ul class="reasons">{{range .Reasons}}<li>{{.}}</li>{{end}}</ul></li>{{end}}

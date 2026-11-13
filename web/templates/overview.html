@@ -1,0 +1,33 @@
+{{define "content"}}
+<h1>Overview</h1>
+<section class="tiles">
+  <a class="tile {{if .Errors}}bad{{else}}ok{{end}}" href="#errors"><span class="n">{{len .Errors}}</span><span>structural errors</span></a>
+  <a class="tile {{if .Gaps}}warn{{else}}ok{{end}}" href="#gaps"><span class="n">{{len .Gaps}}</span><span>gaps</span></a>
+  <a class="tile {{if .Unverified}}warn{{else}}ok{{end}}" href="#unverified"><span class="n">{{len .Unverified}}</span><span>unverified requirements</span></a>
+  <a class="tile {{if eq .Covered (len .Origins)}}ok{{else}}warn{{end}}" href="#coverage"><span class="n">{{.Covered}}/{{len .Origins}}</span><span>needs, hazards, threats and clauses covered</span></a>
+</section>
+
+<h2 id="coverage">Coverage</h2>
+{{if .Origins}}
+<div class="scroll"><table>
+  <thead><tr><th>ID</th><th>Kind</th><th>Name</th><th>Covered</th><th>Why not</th></tr></thead>
+  <tbody>{{range .Origins}}
+    <tr><td><a href="/e/{{.ID}}">{{.ID}}</a></td><td><span class="dot {{kindclass .Kind}}"></span>{{.Kind}}</td><td>{{.Name}}</td>
+      <td><span class="badge {{if .Covered}}ok{{else}}bad{{end}}">{{if .Covered}}yes{{else}}no{{end}}</span></td>
+      <td>{{range .Reasons}}<div>{{.}}</div>{{end}}</td></tr>{{end}}
+  </tbody>
+</table></div>
+{{else}}<p class="muted">No needs, hazards, threat scenarios or clauses yet.</p>{{end}}
+
+<h2 id="unverified">Unverified requirements</h2>
+{{if .Unverified}}<ul class="evidence">{{range .Unverified}}{{template "evidence" .}}{{end}}</ul>{{else}}<p class="muted">Every requirement is verified.</p>{{end}}
+
+<h2 id="errors">Structural errors</h2>
+{{if .Errors}}{{template "issues" .Errors}}{{else}}<p class="muted">None. The model can be queried and exported.</p>{{end}}
+
+<h2 id="gaps">Gaps</h2>
+{{if .Gaps}}{{template "issues" .Gaps}}{{else}}<p class="muted">None.</p>{{end}}
+
+<h2>Elements</h2>
+<ul class="counts">{{range .Counts}}<li><a href="/kind/{{.Kind}}"><span class="dot {{kindclass .Kind}}"></span>{{.Kind}}</a> <span class="muted">{{.N}}</span></li>{{end}}</ul>
+{{end}}

@@ -1,0 +1,66 @@
+{{define "content"}}
+<div class="titlebar">
+  <div>
+    <p class="kindline"><span class="dot {{kindclass .Kind}}"></span>{{.Kind}}{{with .E.Status}} · <span class="status">{{.}}</span>{{end}}</p>
+    <h1>{{.ID}}{{with .E.Name}} <span class="name">{{.}}</span>{{end}}</h1>
+    {{with .Detail}}<p class="muted">{{.}}</p>{{end}}
+  </div>
+  <div class="actions">
+    <a class="button" href="/e/{{.ID}}/edit">Edit</a>
+    <form action="/e/{{.ID}}/delete" method="post" onsubmit="return confirm('Delete {{.ID}}? This removes its file.')">
+      <button type="submit" class="danger">Delete</button>
+    </form>
+  </div>
+</div>
+
+{{with .Summary}}<blockquote class="summary">{{.}}</blockquote>{{end}}
+
+{{if or .Errors .Gaps}}
+<section class="callout">
+  {{if .Errors}}<h2>Structural errors</h2>{{template "issues" .Errors}}{{end}}
+  {{if .Gaps}}<h2>Gaps</h2>{{template "issues" .Gaps}}{{end}}
+</section>
+{{end}}
+
+{{with .Evidence}}
+<h2>Evidence</h2>
+<ul class="evidence">{{template "evidence" .}}</ul>
+{{end}}
+
+{{with .Coverage}}
+<h2>Coverage</h2>
+<p><span class="badge {{if .Covered}}ok{{else}}bad{{end}}">{{if .Covered}}covered{{else}}not covered{{end}}</span>
+  {{with .Goals}}by goals {{range $i, $g := .}}{{if $i}}, {{end}}<a href="/e/{{$g}}">{{$g}}</a>{{end}}{{end}}</p>
+{{with .Reasons}}<ul class="reasons">{{range .}}<li>{{.}}</li>{{end}}</ul>{{end}}
+{{with .Requirements}}<ul class="evidence">{{range .}}{{template "evidence" .}}{{end}}</ul>{{end}}
+{{end}}
+
+{{with .Trace}}
+<h2>Trace</h2>
+{{if $.SVG}}<div class="scroll diagram">{{$.SVG}}</div>
+<p class="muted small">Origins above, solution and evidence below. Hover a line to see the relation; click a box to open it.</p>{{end}}
+<div class="cols">
+  <section><h3>Up, toward the origin</h3>{{template "edges" .Up}}</section>
+  <section><h3>Down, toward the solution</h3>{{template "edges" .Down}}</section>
+</div>
+{{end}}
+
+<div class="cols">
+  <section>
+    <h3>Referred to by</h3>
+    {{if .Referrers}}<ul class="edges">{{range .Referrers}}<li><a href="/e/{{.From}}">{{.From}}</a> <span class="rel">{{.Field}}</span></li>{{end}}</ul>{{else}}<p class="muted">Nothing.</p>{{end}}
+  </section>
+  {{with .Impact}}
+  <section>
+    <h3>If {{.Changed}} changes</h3>
+    {{if .Direct}}
+    <p>Review directly: {{range $i, $d := .Direct}}{{if $i}}, {{end}}<a href="/e/{{$d}}">{{$d}}</a>{{end}}</p>
+    {{with .Affected}}<p>Affected below them: {{range $i, $d := .}}{{if $i}}, {{end}}<a href="/e/{{$d}}">{{$d}}</a>{{end}}</p>{{end}}
+    {{else}}<p class="muted">Nothing depends on it.</p>{{end}}
+  </section>
+  {{end}}
+</div>
+
+<h2>Stored as</h2>
+<pre class="json">{{.JSON}}</pre>
+{{end}}

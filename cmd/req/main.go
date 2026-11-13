@@ -19,18 +19,23 @@
 //	import FORMAT FILE
 //	                 import requirements from reqif (.reqif or .reqifz) or
 //	                 sphinx-needs (needs.json); needs -context
+//	serve            web UI on -addr (default 127.0.0.1:8080); with -git,
+//	                 every save is committed
 package main
 
 import (
 	"encoding/json"
 	"flag"
 	"fmt"
+	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/vanDeventer/Requirements/exchange"
 	"github.com/vanDeventer/Requirements/req"
+	"github.com/vanDeventer/Requirements/web"
 )
 
 func main() {
@@ -40,8 +45,10 @@ func main() {
 	prefix := flag.String("prefix", "", "import: prefix for new IDs, e.g. PLR-")
 	types := flag.String("types", "req", "import sphinx-needs: comma-separated need types to import")
 	dryRun := flag.Bool("n", false, "import: show what would change without writing")
+	addr := flag.String("addr", "127.0.0.1:8080", "serve: address to listen on")
+	useGit := flag.Bool("git", false, "serve: commit every change to git")
 	flag.Usage = func() {
-		fmt.Fprintln(os.Stderr, "usage: req [-m dir] [-json] check | get ID | find WORDS | trace ID | impact ID | evidence ID | unverified [SPEC] | coverage ID | gate [SPEC] | import reqif|sphinx-needs FILE")
+		fmt.Fprintln(os.Stderr, "usage: req [-m dir] [-json] check | get ID | find WORDS | trace ID | impact ID | evidence ID | unverified [SPEC] | coverage ID | gate [SPEC] | import reqif|sphinx-needs FILE | serve")
 		flag.PrintDefaults()
 	}
 	flag.Parse()
@@ -227,6 +234,14 @@ func main() {
 		if err := res.Save(*dir); err != nil {
 			fail(err)
 		}
+	case "serve":
+		srv, err := web.New(web.Options{Dir: *dir, Git: *useGit})
+		if err != nil {
+			fail(err)
+		}
+		hs := &http.Server{Addr: *addr, Handler: srv, ReadHeaderTimeout: 10 * time.Second}
+		fmt.Fprintf(os.Stderr, "serving %s on http://%s\n", *dir, *addr)
+		fail(hs.ListenAndServe())
 	default:
 		flag.Usage()
 		os.Exit(2)

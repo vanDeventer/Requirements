@@ -13,9 +13,10 @@ import (
 // TraceResult is everything reachable from Root, toward the origin (Up) and
 // toward the solution (Down). Edges keep their stored direction.
 type TraceResult struct {
-	Root Ref    `json:"root"`
-	Up   []Edge `json:"up"`
-	Down []Edge `json:"down"`
+	Root  Ref         `json:"root"`
+	Up    []Edge      `json:"up"`
+	Down  []Edge      `json:"down"`
+	Depth map[Ref]int `json:"depth"` // steps from Root: negative up, positive down
 }
 
 // Trace follows the trace graph from id in both directions.
@@ -24,9 +25,10 @@ func (m *Model) Trace(id Ref) (TraceResult, error) {
 		return TraceResult{}, fmt.Errorf("%s does not exist", id)
 	}
 	g := m.index()
-	up, _ := g.reach([]Ref{id}, Up, nil)
-	down, _ := g.reach([]Ref{id}, Down, nil)
-	return TraceResult{Root: id, Up: up, Down: down}, nil
+	depth := map[Ref]int{id: 0}
+	down, _ := g.reachDepth([]Ref{id}, Down, nil, func(n Ref, d int) { depth[n] = d })
+	up, _ := g.reachDepth([]Ref{id}, Up, nil, func(n Ref, d int) { depth[n] = -d })
+	return TraceResult{Root: id, Up: up, Down: down, Depth: depth}, nil
 }
 
 // graphIndex holds the edges by endpoint.
@@ -48,11 +50,17 @@ func (m *Model) index() graphIndex {
 // the edges crossed and the nodes reached, excluding the start nodes. With a
 // non-nil keep, it doesn't step onto nodes for which keep is false.
 func (g graphIndex) reach(start []Ref, d Dir, keep func(Ref) bool) ([]Edge, []Ref) {
+	return g.reachDepth(start, d, keep, nil)
+}
+
+// reachDepth is reach that also reports each node's distance from the start.
+func (g graphIndex) reachDepth(start []Ref, d Dir, keep func(Ref) bool, at func(Ref, int)) ([]Edge, []Ref) {
 	opp := Down
 	if d == Down {
 		opp = Up
 	}
 	seen := map[Ref]bool{}
+	dist := map[Ref]int{}
 	for _, s := range start {
 		seen[s] = true
 	}
@@ -69,6 +77,10 @@ func (g graphIndex) reach(start []Ref, d Dir, keep func(Ref) bool) ([]Edge, []Re
 			edges = append(edges, e)
 			if !seen[next] {
 				seen[next] = true
+				dist[next] = dist[n] + 1
+				if at != nil {
+					at(next, dist[next])
+				}
 				nodes = append(nodes, next)
 				queue = append(queue, next)
 			}

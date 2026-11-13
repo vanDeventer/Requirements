@@ -1,0 +1,15 @@
+{{define "content"}}
+<h1>Search</h1>
+<form class="search wide" action="/find" method="get" role="search">
+  <input type="search" name="q" value="{{.Q}}" placeholder="Words that must all appear" aria-label="Search" autofocus>
+  <button type="submit">Search</button>
+</form>
+{{if .Q}}
+  {{if .Hits}}
+  <div class="scroll"><table>
+    <thead><tr><th>ID</th><th>Kind</th><th>Name</th></tr></thead>
+    <tbody>{{range .Hits}}<tr><td><a href="/e/{{.ID}}">{{.ID}}</a></td><td><span class="dot {{kindclass .Kind}}"></span>{{.Kind}}</td><td>{{.Name}}</td></tr>{{end}}</tbody>
+  </table></div>
+  {{else}}<p class="muted">Nothing contains all of “{{.Q}}”.</p>{{end}}
+{{end}}
+{{end}}

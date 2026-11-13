@@ -1,0 +1,30 @@
+{{define "content"}}
+<h1>{{if .ID}}Edit {{.ID}}{{else}}New {{.Kind}}{{end}}</h1>
+{{if .Problems}}
+<section class="callout bad" role="alert">
+  <h2>Not saved</h2>
+  <ul>{{range .Problems}}<li>{{.}}</li>{{end}}</ul>
+</section>
+{{end}}
+<div class="editor">
+  <form method="post" action="{{if .ID}}/e/{{.ID}}/edit{{else}}/new/{{.Kind}}{{end}}">
+    <label for="json">{{.Kind}} as JSON, the same as its file</label>
+    <textarea id="json" name="json" rows="{{.Rows}}" spellcheck="false" autocapitalize="off" autocomplete="off">{{.JSON}}</textarea>
+    <div class="actions">
+      <button type="submit">Save</button>
+      <a class="button quiet" href="{{if .ID}}/e/{{.ID}}{{else}}/kind/{{.Kind}}{{end}}">Cancel</a>
+    </div>
+    <p class="muted small">The save is checked against the whole model and refused if it adds structural errors. Unknown fields are refused too.</p>
+  </form>
+  <aside class="help">
+    <h2>Fields</h2>
+    {{with .Required}}<p>Required: {{range $i, $f := .}}{{if $i}}, {{end}}<code>{{$f}}</code>{{end}}</p>{{end}}
+    <dl>
+      {{range .Fields}}
+      <dt><code>{{.Field}}</code></dt>
+      <dd>{{if .Scheme}}one of {{range $i, $v := .Values}}{{if $i}}, {{end}}<code>{{$v}}</code>{{else}}<span class="muted">(scheme {{.Scheme}} is empty or missing)</span>{{end}}{{else}}ID of {{.Refs}}{{end}}</dd>
+      {{end}}
+    </dl>
+  </aside>
+</div>
+{{end}}

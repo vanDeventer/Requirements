@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"io/fs"
 	"os"
 	"path/filepath"
@@ -97,13 +98,27 @@ func decodeFile(path string, v any) error {
 	if err != nil {
 		return err
 	}
-	d := json.NewDecoder(bytes.NewReader(b))
-	d.DisallowUnknownFields()
-	if err := d.Decode(v); err != nil {
+	if err := decodeBytes(b, v); err != nil {
 		return fmt.Errorf("%s: %w", path, err)
 	}
 	return nil
 }
+
+// decodeBytes decodes exactly one JSON value, rejecting unknown fields and
+// trailing data.
+func decodeBytes(b []byte, v any) error {
+	d := json.NewDecoder(bytes.NewReader(b))
+	d.DisallowUnknownFields()
+	if err := d.Decode(v); err != nil {
+		return err
+	}
+	if err := d.Decode(new(json.RawMessage)); err != io.EOF {
+		return errors.New("unexpected data after the JSON value")
+	}
+	return nil
+}
+
+func errUnknownKind(k Kind) error { return fmt.Errorf("unknown kind %q", k) }
 
 // Save writes e to its file in dir, creating the kind directory if needed.
 // The write is atomic: a crash leaves either the old or the new file.

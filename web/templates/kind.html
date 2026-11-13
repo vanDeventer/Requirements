@@ -1,0 +1,16 @@
+{{define "content"}}
+<div class="titlebar">
+  <h1><span class="dot {{kindclass .Kind}}"></span>{{.Kind}}</h1>
+  <a class="button" href="/new/{{.Kind}}">New {{.Kind}}</a>
+</div>
+{{if .Rows}}
+<div class="scroll"><table>
+  <thead><tr><th>ID</th><th>Name</th><th>Status</th>{{if .IsReq}}<th>Evidence</th>{{end}}<th>Details</th></tr></thead>
+  <tbody>{{range .Rows}}
+    <tr><td><a href="/e/{{.ID}}">{{.ID}}</a></td><td>{{.Name}}</td><td>{{.Status}}</td>
+      {{if $.IsReq}}<td><span class="badge {{if eq .Verdict "verified"}}ok{{else if eq .Verdict "satisfied"}}warn{{else}}bad{{end}}">{{.Verdict}}</span></td>{{end}}
+      <td class="muted">{{.Detail}}</td></tr>{{end}}
+  </tbody>
+</table></div>
+{{else}}<p class="muted">None yet.</p>{{end}}
+{{end}}
