@@ -1,0 +1,6 @@
+{
+	"id": "AS-002",
+	"name": "Driver parks when asked",
+	"kind": "expectation",
+	"text": "When prompted, the driver parks the vehicle within a day so the update can install."
+}

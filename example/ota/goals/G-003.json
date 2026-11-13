@@ -1,0 +1,8 @@
+{
+	"id": "G-003",
+	"name": "Only authentic packages install",
+	"description": "Cybersecurity goal from TS-001.",
+	"status": "approved",
+	"pattern": "avoid",
+	"addresses": ["TS-001", "CL-R156-7-2"]
+}

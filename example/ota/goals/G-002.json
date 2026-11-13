@@ -1,0 +1,8 @@
+{
+	"id": "G-002",
+	"name": "No update installs while driving",
+	"description": "Safety goal from HAZ-001.",
+	"status": "approved",
+	"pattern": "avoid",
+	"addresses": ["HAZ-001"]
+}

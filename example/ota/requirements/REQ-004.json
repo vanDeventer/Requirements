@@ -1,0 +1,13 @@
+{
+	"id": "REQ-004",
+	"name": "Install time",
+	"status": "approved",
+	"text": "Installing an update shall take at most 20 min at the 95th percentile.",
+	"context": "product",
+	"form": "quality",
+	"concerns": ["performance"],
+	"refines": ["REQ-003"],
+	"criteria": [
+		{"metric": "install-time-p95", "operator": "<=", "threshold": 20, "unit": "min"}
+	]
+}

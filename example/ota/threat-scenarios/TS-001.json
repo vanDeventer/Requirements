@@ -1,0 +1,6 @@
+{
+	"id": "TS-001",
+	"name": "Tampered software package",
+	"description": "An attacker gets a modified software package installed on the vehicle.",
+	"source": "https://example.org/tara#TS-001"
+}

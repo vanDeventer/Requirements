@@ -1,0 +1,7 @@
+{
+	"id": "DE-003",
+	"name": "Signature verifier",
+	"kind": "component",
+	"version": "0.9.0",
+	"parent": "DE-002"
+}

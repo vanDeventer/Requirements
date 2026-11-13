@@ -1,0 +1,13 @@
+{
+	"id": "SC-001",
+	"name": "A/B partitions",
+	"description": "Install on the inactive partition while the vehicle runs; switch at the next safe moment.",
+	"status": "approved",
+	"rationale": {
+		"text": "Keeps the old software as a fallback and shortens the time the vehicle is unavailable.",
+		"alternatives": ["SC-002"]
+	},
+	"kind": "system",
+	"addresses": ["G-001"],
+	"selected": true
+}

@@ -1,0 +1,10 @@
+{
+	"id": "VER-001",
+	"verifies": ["REQ-001"],
+	"item": "DE-002",
+	"method": "test",
+	"result": "pass",
+	"evidence": ["https://example.org/ci/runs/4711"],
+	"atVersion": "1.2.0",
+	"date": "2026-10-20T14:00:00Z"
+}

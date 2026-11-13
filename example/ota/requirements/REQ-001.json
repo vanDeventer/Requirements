@@ -1,0 +1,17 @@
+{
+	"id": "REQ-001",
+	"name": "Install only when parked",
+	"owner": "SH-sw-lead",
+	"status": "approved",
+	"text": "The update manager shall start an installation only while the vehicle speed is 0 km/h and the parking brake is applied.",
+	"context": "product",
+	"form": "functional",
+	"concerns": ["safety"],
+	"operationalizes": ["G-002"],
+	"concept": "SC-001",
+	"assumes": ["AS-001"],
+	"criteria": [
+		{"metric": "installs-started-while-moving", "operator": "=", "threshold": 0, "condition": "over 10 000 simulated drive cycles"}
+	],
+	"safety": {"asil": "B"}
+}

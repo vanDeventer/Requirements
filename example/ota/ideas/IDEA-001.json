@@ -1,0 +1,7 @@
+{
+	"id": "IDEA-001",
+	"name": "Over-the-air updates",
+	"status": "approved",
+	"statement": "Update vehicle software over the air instead of at the workshop.",
+	"proposedBy": "SH-oem"
+}

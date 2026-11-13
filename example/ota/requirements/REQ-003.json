@@ -1,0 +1,10 @@
+{
+	"id": "REQ-003",
+	"name": "Install quickly",
+	"status": "approved",
+	"text": "Installing an update shall be quick.",
+	"context": "product",
+	"form": "quality",
+	"concerns": ["performance"],
+	"operationalizes": ["G-004"]
+}

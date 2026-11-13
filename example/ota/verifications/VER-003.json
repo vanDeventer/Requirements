@@ -1,0 +1,10 @@
+{
+	"id": "VER-003",
+	"verifies": ["REQ-006"],
+	"item": "DE-004",
+	"method": "shadow-test",
+	"result": "pass",
+	"evidence": ["https://example.org/fleet/silent-runs/2026-10"],
+	"atVersion": "3.1.0",
+	"date": "2026-11-02T08:00:00Z"
+}

@@ -1,0 +1,6 @@
+{
+	"id": "SPEC-001",
+	"name": "Update manager requirements specification",
+	"subject": "DE-002",
+	"contains": ["REQ-001", "REQ-004", "REQ-005"]
+}

@@ -1,0 +1,24 @@
+{
+	"id": "REQ-007",
+	"name": "Night images in the training set",
+	"owner": "SH-safety",
+	"status": "approved",
+	"rationale": {
+		"text": "Choosing an ML model for detection makes the training data part of the design; night driving is where recall dropped in the previous release."
+	},
+	"provenance": {
+		"sources": ["https://example.org/docs/perception-data-spec.pdf"],
+		"generatedBy": "example-local-model 1.0",
+		"approvedBy": "SH-safety",
+		"approvedOn": "2026-10-12T10:00:00Z"
+	},
+	"text": "The training set for the pedestrian detection model shall contain at least 15 % night-time images.",
+	"context": "training-data",
+	"form": "constraint",
+	"concerns": ["safety"],
+	"derivedFrom": ["DE-004"],
+	"criteria": [
+		{"metric": "night-image-share", "operator": ">=", "threshold": 15, "unit": "%"}
+	],
+	"safety": {"asil": "B"}
+}

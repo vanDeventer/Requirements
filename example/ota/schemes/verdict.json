@@ -1,0 +1,10 @@
+{
+	"id": "verdict",
+	"name": "Verdict (SysML VerdictKind)",
+	"concepts": [
+		{"id": "pass"},
+		{"id": "fail"},
+		{"id": "inconclusive"},
+		{"id": "error"}
+	]
+}

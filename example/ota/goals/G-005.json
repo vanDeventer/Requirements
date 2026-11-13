@@ -1,0 +1,8 @@
+{
+	"id": "G-005",
+	"name": "ML model updates don't degrade safety functions",
+	"description": "Safety goal from HAZ-002.",
+	"status": "approved",
+	"pattern": "maintain",
+	"addresses": ["HAZ-002"]
+}

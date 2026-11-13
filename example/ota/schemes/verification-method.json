@@ -1,0 +1,14 @@
+{
+	"id": "verification-method",
+	"name": "Verification method",
+	"concepts": [
+		{"id": "test"},
+		{"id": "sil-test", "label": "Software-in-the-loop test", "broader": "test"},
+		{"id": "hil-test", "label": "Hardware-in-the-loop test", "broader": "test"},
+		{"id": "vil-test", "label": "Vehicle-in-the-loop test", "broader": "test"},
+		{"id": "shadow-test", "label": "Silent-mode test in the vehicle, next to the live version", "broader": "test"},
+		{"id": "analysis"},
+		{"id": "inspection"},
+		{"id": "demonstration"}
+	]
+}

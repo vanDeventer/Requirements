@@ -1,0 +1,14 @@
+{
+	"id": "REQ-005",
+	"name": "Switch only after integrity check",
+	"status": "proposed",
+	"rationale": {
+		"text": "Follows from the A/B design: a corrupted inactive partition must never become active."
+	},
+	"text": "The update manager shall switch to the newly written partition only after its integrity check passes.",
+	"context": "product",
+	"form": "functional",
+	"concerns": ["security"],
+	"derivedFrom": ["DE-002"],
+	"security": {"cal": "CAL2", "threatScenario": "TS-001"}
+}

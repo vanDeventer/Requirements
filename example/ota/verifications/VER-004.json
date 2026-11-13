@@ -1,0 +1,10 @@
+{
+	"id": "VER-004",
+	"verifies": ["REQ-007"],
+	"item": "DE-005",
+	"method": "analysis",
+	"result": "pass",
+	"evidence": ["https://example.org/data/reports/night-share-2026-09"],
+	"atVersion": "2026-09",
+	"date": "2026-10-16T08:00:00Z"
+}

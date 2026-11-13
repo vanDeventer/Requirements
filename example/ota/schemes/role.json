@@ -1,0 +1,11 @@
+{
+	"id": "role",
+	"name": "Stakeholder role",
+	"concepts": [
+		{"id": "driver"},
+		{"id": "oem"},
+		{"id": "supplier"},
+		{"id": "regulator"},
+		{"id": "engineer"}
+	]
+}

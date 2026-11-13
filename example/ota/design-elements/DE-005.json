@@ -1,0 +1,7 @@
+{
+	"id": "DE-005",
+	"name": "Pedestrian detection training set",
+	"kind": "dataset",
+	"version": "2026-09",
+	"parent": "DE-004"
+}

@@ -1,0 +1,9 @@
+{
+	"id": "requirement-context",
+	"name": "What a requirement is on",
+	"concepts": [
+		{"id": "product", "label": "Vehicle or cloud software the tools help build"},
+		{"id": "tool", "label": "An AI-assisted engineering tool itself"},
+		{"id": "training-data", "label": "Data used to train or fine-tune an ML model"}
+	]
+}

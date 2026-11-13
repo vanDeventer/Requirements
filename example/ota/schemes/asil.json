@@ -1,0 +1,11 @@
+{
+	"id": "asil",
+	"name": "ASIL (ISO 26262)",
+	"concepts": [
+		{"id": "QM"},
+		{"id": "A"},
+		{"id": "B"},
+		{"id": "C"},
+		{"id": "D"}
+	]
+}

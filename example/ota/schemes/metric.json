@@ -1,0 +1,12 @@
+{
+	"id": "metric",
+	"name": "Metric",
+	"concepts": [
+		{"id": "installs-started-while-moving"},
+		{"id": "tampered-packages-accepted"},
+		{"id": "install-time-p95"},
+		{"id": "switches-without-integrity-check"},
+		{"id": "pedestrian-recall", "label": "Recall of pedestrian detection on the validation set"},
+		{"id": "night-image-share", "label": "Share of night-time images in a data set"}
+	]
+}

@@ -1,0 +1,12 @@
+{
+	"id": "concern",
+	"name": "Concern (after ISO/IEC 25010)",
+	"concepts": [
+		{"id": "safety"},
+		{"id": "security"},
+		{"id": "privacy"},
+		{"id": "performance"},
+		{"id": "reliability"},
+		{"id": "usability"}
+	]
+}

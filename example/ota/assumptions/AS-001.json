@@ -1,0 +1,6 @@
+{
+	"id": "AS-001",
+	"name": "Speed signal is reliable",
+	"kind": "domain-property",
+	"text": "The vehicle speed reported on the vehicle bus is correct to within 1 km/h."
+}

@@ -1,0 +1,10 @@
+{
+	"id": "G-001",
+	"name": "Software is updated over the air",
+	"status": "approved",
+	"pattern": "achieve",
+	"refinement": "AND",
+	"subgoals": ["G-002", "G-003", "G-004", "G-005"],
+	"addresses": ["NEED-001"],
+	"assumes": ["AS-002"]
+}

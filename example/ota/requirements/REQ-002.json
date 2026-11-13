@@ -1,0 +1,15 @@
+{
+	"id": "REQ-002",
+	"name": "Reject unsigned packages",
+	"owner": "SH-sw-lead",
+	"status": "approved",
+	"text": "The update manager shall reject any package whose signature does not verify against the manufacturer's key.",
+	"context": "product",
+	"form": "functional",
+	"concerns": ["security"],
+	"operationalizes": ["G-003"],
+	"criteria": [
+		{"metric": "tampered-packages-accepted", "operator": "=", "threshold": 0, "condition": "for the tampered-package test set"}
+	],
+	"security": {"cal": "CAL3", "threatScenario": "TS-001"}
+}

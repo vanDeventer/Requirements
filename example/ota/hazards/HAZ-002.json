@@ -1,0 +1,6 @@
+{
+	"id": "HAZ-002",
+	"name": "Updated ML model degrades a safety function",
+	"description": "An over-the-air update replaces the pedestrian detection model with one that misses pedestrians the old one found.",
+	"source": "https://example.org/hara#HAZ-002"
+}

@@ -1,0 +1,15 @@
+{
+	"id": "REQ-006",
+	"name": "Model recall before release",
+	"owner": "SH-safety",
+	"status": "approved",
+	"text": "An updated pedestrian detection model shall reach a recall of at least 0.99 on the validation set, and match the live model in silent mode, before it is offered for installation.",
+	"context": "product",
+	"form": "quality",
+	"concerns": ["safety"],
+	"operationalizes": ["G-005"],
+	"criteria": [
+		{"metric": "pedestrian-recall", "operator": ">=", "threshold": 0.99, "condition": "on validation set V-2026-09 and over 5 000 km in silent mode"}
+	],
+	"safety": {"asil": "B"}
+}

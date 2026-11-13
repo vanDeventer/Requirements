@@ -1,0 +1,12 @@
+{
+	"id": "design-kind",
+	"name": "Design element kind",
+	"concepts": [
+		{"id": "system"},
+		{"id": "subsystem"},
+		{"id": "component"},
+		{"id": "interface"},
+		{"id": "ml-model", "label": "Trained ML model"},
+		{"id": "dataset", "label": "Training, validation or test data set"}
+	]
+}

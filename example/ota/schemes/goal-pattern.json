@@ -1,0 +1,10 @@
+{
+	"id": "goal-pattern",
+	"name": "Goal pattern",
+	"concepts": [
+		{"id": "achieve"},
+		{"id": "maintain"},
+		{"id": "cease"},
+		{"id": "avoid"}
+	]
+}

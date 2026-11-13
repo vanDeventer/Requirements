@@ -1,0 +1,6 @@
+{
+	"id": "HAZ-001",
+	"name": "Update interrupts a driving function",
+	"description": "An update installs while the vehicle moves and disables a function the driver relies on.",
+	"source": "https://example.org/hara#HAZ-001"
+}

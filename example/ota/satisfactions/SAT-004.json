@@ -1,0 +1,8 @@
+{
+	"id": "SAT-004",
+	"owner": "SH-safety",
+	"requirement": "REQ-006",
+	"by": "DE-004",
+	"atVersion": "3.1.0",
+	"date": "2026-10-15T09:00:00Z"
+}

@@ -1,0 +1,8 @@
+{
+	"id": "SC-002",
+	"name": "In-place install",
+	"description": "Overwrite the running software during a dedicated update session.",
+	"status": "rejected",
+	"kind": "system",
+	"addresses": ["G-001"]
+}

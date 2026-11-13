@@ -1,0 +1,10 @@
+{
+	"id": "status",
+	"name": "Lifecycle status",
+	"concepts": [
+		{"id": "proposed"},
+		{"id": "approved"},
+		{"id": "rejected"},
+		{"id": "obsolete"}
+	]
+}

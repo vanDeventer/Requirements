@@ -1,0 +1,8 @@
+{
+	"id": "NEED-001",
+	"name": "Fixes without a workshop visit",
+	"status": "approved",
+	"statement": "The vehicle gets software fixes and improvements without a visit to the workshop.",
+	"heldBy": ["SH-driver"],
+	"origin": ["IDEA-001"]
+}

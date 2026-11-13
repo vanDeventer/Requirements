@@ -1,0 +1,8 @@
+{
+	"id": "assumption-kind",
+	"name": "Assumption kind",
+	"concepts": [
+		{"id": "domain-property"},
+		{"id": "expectation"}
+	]
+}

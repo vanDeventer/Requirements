@@ -1,0 +1,8 @@
+{
+	"id": "concept-kind",
+	"name": "Solution concept kind",
+	"concepts": [
+		{"id": "operational"},
+		{"id": "system"}
+	]
+}
