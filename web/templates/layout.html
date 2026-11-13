@@ -23,6 +23,8 @@
       {{range .Kinds}}<li><a href="/kind/{{.}}"><span class="dot {{kindclass .}}"></span>{{.}}</a></li>
       {{end}}
     </ul>
+    <p class="small">Export: <a href="/export/model.ttl">Turtle</a> · <a href="/export/model.sysml">SysML v2</a><br>
+      Vocabulary: <a href="/export/vocab.ttl">ontology</a> · <a href="/export/shapes.ttl">shapes</a> · <a href="/export/gaps.ttl">gap checks</a></p>
     <p class="muted small" title="{{.Dir}}">Model: {{.Base}}{{if .Git}} · each save is a git commit{{end}}</p>
   </nav>
   <main>{{template "content" .Data}}</main>

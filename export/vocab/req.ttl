@@ -1,0 +1,561 @@
+@prefix req: <https://github.com/vanDeventer/Requirements/vocab#> .
+@prefix oslc_rm: <http://open-services.net/ns/rm#> .
+@prefix prov: <http://www.w3.org/ns/prov#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix schema: <https://schema.org/> .
+
+# The req: vocabulary for software-defined-vehicle requirements.
+#
+# It stays within OWL 2 RL, so rule engines such as GraphDB's owl2-rl
+# rulesets can reason with it. It infers trace shortcuts and types; it does
+# not decide whether a requirement is verified or a model is complete. That
+# is closed-world checking, done by the model tool and by SHACL shapes. The
+# terms are explained in "Requirements Vocabulary Semantics and
+# Relationships.md".
+#
+# Links between elements have no rdfs:domain or rdfs:range: a reasoner would
+# turn a link to the wrong kind of element into a false type (a requirement
+# "inferred" to be a goal) and hide the error from SHACL validation. The
+# intended kinds are documented with schema:domainIncludes and
+# schema:rangeIncludes, which carry no inference, and checked by the shapes.
+
+<https://github.com/vanDeventer/Requirements/vocab>
+    a owl:Ontology ;
+    rdfs:label "Requirements vocabulary" ;
+    rdfs:comment "Classes and properties for SDV requirements: their origins, goals, refinement, design, satisfaction claims and verification evidence." ;
+    owl:versionInfo "0.1" .
+
+schema:domainIncludes a owl:AnnotationProperty .
+schema:rangeIncludes a owl:AnnotationProperty .
+
+# ---------------------------------------------------------------- classes
+
+req:Element a owl:Class ;
+    rdfs:subClassOf prov:Entity ;
+    rdfs:label "element" ;
+    rdfs:comment "Anything kept in the requirements model, identified by a stable ID." .
+
+req:Stakeholder a owl:Class ;
+    rdfs:subClassOf req:Element , prov:Agent ;
+    rdfs:label "stakeholder" ;
+    rdfs:comment "A person, role or organization with an interest in the system." .
+
+req:Idea a owl:Class ;
+    rdfs:subClassOf req:Element ;
+    rdfs:label "idea" ;
+    rdfs:comment "An informal, unvalidated notion that something could be done; the seed of needs." .
+
+req:GoalOrigin a owl:Class ;
+    rdfs:subClassOf req:Element ;
+    rdfs:label "goal origin" ;
+    rdfs:comment "Something a goal addresses: a need, hazard, threat scenario or standard clause." .
+
+req:Need a owl:Class ;
+    rdfs:subClassOf req:GoalOrigin ;
+    rdfs:label "need" ;
+    rdfs:comment "A stakeholder's problem or desired outcome in their own terms, free of any solution." .
+
+req:Hazard a owl:Class ;
+    rdfs:subClassOf req:GoalOrigin ;
+    rdfs:label "hazard" ;
+    rdfs:comment "A potential source of harm, from a hazard analysis (HARA, ISO 26262; ISO 21448)." .
+
+req:ThreatScenario a owl:Class ;
+    rdfs:subClassOf req:GoalOrigin ;
+    rdfs:label "threat scenario" ;
+    rdfs:comment "A way an attacker could harm an asset, from a threat analysis (TARA, ISO/SAE 21434)." .
+
+req:StandardClause a owl:Class ;
+    rdfs:subClassOf req:GoalOrigin ;
+    rdfs:label "standard clause" ;
+    rdfs:comment "A clause of a given edition of a standard or regulation, referenced rather than copied." .
+
+req:Goal a owl:Class ;
+    rdfs:subClassOf req:Element ;
+    rdfs:label "goal" ;
+    rdfs:comment "An objective the system commits to, refined into subgoals and operationalized by requirements." .
+
+req:SolutionConcept a owl:Class ;
+    rdfs:subClassOf req:Element ;
+    rdfs:label "solution concept" ;
+    rdfs:comment "An approach chosen from alternatives, described well enough to reason about. Not a skos:Concept." .
+
+req:Requirement a owl:Class ;
+    rdfs:subClassOf req:Element , oslc_rm:Requirement ;
+    rdfs:label "requirement" ;
+    rdfs:comment "Something a solution must do or be, or a limit it must stay within." .
+
+req:Assumption a owl:Class ;
+    rdfs:subClassOf req:Element ;
+    rdfs:label "assumption" ;
+    rdfs:comment "Something about the environment the solution relies on but does not control: a domain property or an expectation." .
+
+req:Specification a owl:Class ;
+    rdfs:subClassOf req:Element , oslc_rm:RequirementCollection ;
+    rdfs:label "specification" ;
+    rdfs:comment "A collection of requirements for one design element." .
+
+req:DesignElement a owl:Class ;
+    rdfs:subClassOf req:Element ;
+    rdfs:label "design element" ;
+    rdfs:comment "A part of the chosen design: system, component, interface, ML model, data set." .
+
+req:Satisfaction a owl:Class ;
+    rdfs:subClassOf req:Element ;
+    rdfs:label "satisfaction claim" ;
+    rdfs:comment "A claim that a design element at a version satisfies a requirement. A claim, not evidence." .
+
+req:Verification a owl:Class ;
+    rdfs:subClassOf req:Element ;
+    rdfs:label "verification" ;
+    rdfs:comment "Evidence for satisfaction claims: a test, analysis, inspection or demonstration with a verdict." .
+
+req:Rationale a owl:Class ;
+    rdfs:label "rationale" ;
+    rdfs:comment "Why an element exists or was chosen over alternatives." .
+
+req:AcceptanceCriterion a owl:Class ;
+    rdfs:label "acceptance criterion" ;
+    rdfs:comment "A measurable condition that decides whether a requirement is met." .
+
+[] a owl:AllDisjointClasses ;
+    owl:members ( req:Stakeholder req:Idea req:Need req:Hazard req:ThreatScenario req:StandardClause
+                  req:Goal req:SolutionConcept req:Requirement req:Assumption req:Specification
+                  req:DesignElement req:Satisfaction req:Verification ) .
+
+# ------------------------------------------------- trace super-properties
+
+req:tracesTo a owl:ObjectProperty , owl:TransitiveProperty ;
+    rdfs:label "traces to" ;
+    rdfs:comment "Leads toward the origin, through any trace link: goals, refinement, design, evidence. The inverse of tracedFrom." .
+
+req:tracedFrom a owl:ObjectProperty , owl:TransitiveProperty ;
+    owl:inverseOf req:tracesTo ;
+    rdfs:label "traced from" ;
+    rdfs:comment "Leads toward the solution and evidence." .
+
+req:contributesTo a owl:ObjectProperty , owl:TransitiveProperty ;
+    rdfs:subPropertyOf req:tracesTo ;
+    rdfs:label "contributes to" ;
+    rdfs:comment "Helps achieve what lies above it on the goal path: operationalization, subgoals, refinement and decomposition only, not design. Its objects are goals and requirements, so it has no range." .
+
+req:servesOrigin a owl:ObjectProperty ;
+    rdfs:subPropertyOf req:tracesTo ;
+    owl:propertyChainAxiom ( req:contributesTo req:addresses ) ;
+    schema:rangeIncludes req:GoalOrigin ;
+    rdfs:label "serves origin" ;
+    rdfs:comment "A goal or requirement serves a need, hazard, threat scenario or clause through the goal path. The coverage relation." .
+
+# ---------------------------------------------------- element properties
+
+req:owner a owl:ObjectProperty ;
+    schema:domainIncludes req:Element ;
+    schema:rangeIncludes req:Stakeholder ;
+    rdfs:label "owner" ;
+    rdfs:comment "The stakeholder responsible for the element." .
+
+req:status a owl:ObjectProperty ;
+    rdfs:range skos:Concept ;
+    rdfs:label "status" ;
+    rdfs:comment "Lifecycle status: proposed, approved, rejected or obsolete." .
+
+req:version a owl:DatatypeProperty ;
+    rdfs:range xsd:string ;
+    rdfs:label "version" ;
+    rdfs:comment "Version of the element." .
+
+req:rationale a owl:ObjectProperty ;
+    schema:rangeIncludes req:Rationale ;
+    rdfs:label "rationale" ;
+    rdfs:comment "The reasoning behind the element." .
+
+req:alternative a owl:ObjectProperty ;
+    schema:domainIncludes req:Rationale ;
+    schema:rangeIncludes req:Element ;
+    rdfs:label "alternative" ;
+    rdfs:comment "An element considered and not chosen." .
+
+req:assumes a owl:ObjectProperty ;
+    schema:rangeIncludes req:Assumption ;
+    rdfs:label "assumes" ;
+    rdfs:comment "Depends on an assumption: a goal or requirement, or the rationale of an element." .
+
+req:text a owl:DatatypeProperty ;
+    rdfs:range xsd:string ;
+    rdfs:label "text" ;
+    rdfs:comment "The statement of a requirement, assumption or rationale." .
+
+req:statement a owl:DatatypeProperty ;
+    rdfs:range xsd:string ;
+    rdfs:label "statement" ;
+    rdfs:comment "The statement of an idea or need." .
+
+req:kind a owl:ObjectProperty ;
+    rdfs:range skos:Concept ;
+    rdfs:label "kind" ;
+    rdfs:comment "Kind of a solution concept, assumption or design element." .
+
+# --------------------------------------------------------------- origins
+
+req:role a owl:ObjectProperty ;
+    schema:domainIncludes req:Stakeholder ;
+    rdfs:range skos:Concept ;
+    rdfs:label "role" ;
+    rdfs:comment "Role of a stakeholder." .
+
+req:proposedBy a owl:ObjectProperty ;
+    rdfs:subPropertyOf prov:wasAttributedTo ;
+    schema:domainIncludes req:Idea ;
+    schema:rangeIncludes req:Stakeholder ;
+    rdfs:label "proposed by" ;
+    rdfs:comment "Who proposed an idea." .
+
+req:heldBy a owl:ObjectProperty ;
+    schema:domainIncludes req:Need ;
+    schema:rangeIncludes req:Stakeholder ;
+    rdfs:label "held by" ;
+    rdfs:comment "Stakeholder whose need it is." .
+
+req:origin a owl:ObjectProperty ;
+    rdfs:subPropertyOf req:tracesTo ;
+    schema:domainIncludes req:Need ;
+    schema:rangeIncludes req:Idea ;
+    rdfs:label "origin" ;
+    rdfs:comment "The idea a need arose from." .
+
+req:source a owl:AnnotationProperty ;
+    rdfs:label "source" ;
+    rdfs:comment "Where a hazard or threat scenario is defined, e.g. an IRI into HARA or TARA results." .
+
+req:standard a owl:DatatypeProperty ;
+    schema:domainIncludes req:StandardClause ;
+    rdfs:range xsd:string ;
+    rdfs:label "standard" ;
+    rdfs:comment "The standard or regulation, e.g. ISO 26262-3." .
+
+req:edition a owl:DatatypeProperty ;
+    schema:domainIncludes req:StandardClause ;
+    rdfs:range xsd:string ;
+    rdfs:label "edition" ;
+    rdfs:comment "Edition of the standard, since clauses change between editions." .
+
+req:clause a owl:DatatypeProperty ;
+    schema:domainIncludes req:StandardClause ;
+    rdfs:range xsd:string ;
+    rdfs:label "clause" ;
+    rdfs:comment "Clause number within the edition." .
+
+# ------------------------------------------------------------------ goals
+
+req:pattern a owl:ObjectProperty ;
+    schema:domainIncludes req:Goal ;
+    rdfs:range skos:Concept ;
+    rdfs:label "pattern" ;
+    rdfs:comment "Goal pattern: achieve, maintain, cease or avoid." .
+
+req:soft a owl:DatatypeProperty ;
+    schema:domainIncludes req:Goal ;
+    rdfs:range xsd:boolean ;
+    rdfs:label "soft" ;
+    rdfs:comment "True for a goal without clear-cut satisfaction." .
+
+req:refinement a owl:DatatypeProperty ;
+    schema:domainIncludes req:Goal ;
+    rdfs:range xsd:string ;
+    rdfs:label "refinement" ;
+    rdfs:comment "AND when all subgoals are needed, OR when they are alternatives." .
+
+req:subgoal a owl:ObjectProperty ;
+    rdfs:subPropertyOf req:tracedFrom ;
+    owl:inverseOf req:subgoalOf ;
+    schema:domainIncludes req:Goal ;
+    schema:rangeIncludes req:Goal ;
+    rdfs:label "subgoal" ;
+    rdfs:comment "A goal this goal is refined into." .
+
+req:subgoalOf a owl:ObjectProperty ;
+    rdfs:subPropertyOf req:contributesTo ;
+    rdfs:label "subgoal of" ;
+    rdfs:comment "The goal this goal refines." .
+
+req:addresses a owl:ObjectProperty ;
+    rdfs:subPropertyOf req:servesOrigin ;
+    schema:domainIncludes req:Goal ;
+    schema:rangeIncludes req:GoalOrigin ;
+    rdfs:label "addresses" ;
+    rdfs:comment "The need, hazard, threat scenario or clause a goal answers." .
+
+req:conceptFor a owl:ObjectProperty ;
+    rdfs:subPropertyOf req:tracesTo ;
+    schema:domainIncludes req:SolutionConcept ;
+    schema:rangeIncludes req:Goal ;
+    rdfs:label "concept for" ;
+    rdfs:comment "The goal a solution concept is a way of reaching." .
+
+req:selected a owl:DatatypeProperty ;
+    schema:domainIncludes req:SolutionConcept ;
+    rdfs:range xsd:boolean ;
+    rdfs:label "selected" ;
+    rdfs:comment "True for the chosen concept; alternatives stay with false." .
+
+# ----------------------------------------------------------- requirements
+
+req:context a owl:ObjectProperty ;
+    schema:domainIncludes req:Requirement ;
+    rdfs:range skos:Concept ;
+    rdfs:label "context" ;
+    rdfs:comment "What the requirement is on: an AI-assisted tool, the product, or training data." .
+
+req:form a owl:ObjectProperty ;
+    schema:domainIncludes req:Requirement ;
+    rdfs:range skos:Concept ;
+    rdfs:label "form" ;
+    rdfs:comment "Functional, quality, constraint or interface." .
+
+req:concern a owl:ObjectProperty ;
+    schema:domainIncludes req:Requirement ;
+    rdfs:range skos:Concept ;
+    rdfs:label "concern" ;
+    rdfs:comment "Quality concern such as safety, security, privacy or performance (after ISO/IEC 25010)." .
+
+req:operationalizes a owl:ObjectProperty ;
+    rdfs:subPropertyOf req:contributesTo ;
+    schema:domainIncludes req:Requirement ;
+    schema:rangeIncludes req:Goal ;
+    rdfs:label "operationalizes" ;
+    rdfs:comment "The goal a requirement makes a component responsible for." .
+
+req:presumes a owl:ObjectProperty ;
+    rdfs:subPropertyOf req:tracesTo ;
+    schema:domainIncludes req:Requirement ;
+    schema:rangeIncludes req:SolutionConcept ;
+    rdfs:label "presumes" ;
+    rdfs:comment "The solution concept a requirement is written within." .
+
+req:child a owl:ObjectProperty ;
+    rdfs:subPropertyOf req:tracedFrom , oslc_rm:decomposedBy ;
+    owl:inverseOf req:childOf ;
+    schema:domainIncludes req:Requirement ;
+    schema:rangeIncludes req:Requirement ;
+    rdfs:label "child" ;
+    rdfs:comment "A part this requirement is decomposed into; the parts together imply it." .
+
+req:childOf a owl:ObjectProperty ;
+    rdfs:subPropertyOf req:contributesTo , oslc_rm:decomposes ;
+    rdfs:label "child of" ;
+    rdfs:comment "The requirement this one is a part of." .
+
+req:refines a owl:ObjectProperty , owl:TransitiveProperty ;
+    rdfs:subPropertyOf req:contributesTo , oslc_rm:elaborates ;
+    owl:inverseOf req:refinedBy ;
+    schema:domainIncludes req:Requirement ;
+    schema:rangeIncludes req:Requirement ;
+    rdfs:label "refines" ;
+    rdfs:comment "States the original more precisely, in the same scope; the refined statement implies the original." .
+
+req:refinedBy a owl:ObjectProperty , owl:TransitiveProperty ;
+    rdfs:subPropertyOf oslc_rm:elaboratedBy ;
+    rdfs:label "refined by" ;
+    rdfs:comment "A more precise statement of this requirement." .
+
+req:derivedFrom a owl:ObjectProperty ;
+    rdfs:subPropertyOf req:tracesTo ;
+    schema:domainIncludes req:Requirement ;
+    schema:rangeIncludes req:DesignElement ;
+    rdfs:label "derived from" ;
+    rdfs:comment "The design element whose choice gave rise to this requirement." .
+
+req:criterion a owl:ObjectProperty ;
+    schema:domainIncludes req:Requirement ;
+    schema:rangeIncludes req:AcceptanceCriterion ;
+    rdfs:label "criterion" ;
+    rdfs:comment "An acceptance criterion of the requirement." .
+
+req:metric a owl:ObjectProperty ;
+    schema:domainIncludes req:AcceptanceCriterion ;
+    rdfs:range skos:Concept ;
+    rdfs:label "metric" ;
+    rdfs:comment "What is measured." .
+
+req:operator a owl:DatatypeProperty ;
+    schema:domainIncludes req:AcceptanceCriterion ;
+    rdfs:range xsd:string ;
+    rdfs:label "operator" ;
+    rdfs:comment "Comparison with the threshold: <, <=, =, >= or >." .
+
+req:threshold a owl:DatatypeProperty ;
+    schema:domainIncludes req:AcceptanceCriterion ;
+    rdfs:range xsd:decimal ;
+    rdfs:label "threshold" ;
+    rdfs:comment "Value the metric is compared with." .
+
+req:unit a owl:DatatypeProperty ;
+    schema:domainIncludes req:AcceptanceCriterion ;
+    rdfs:range xsd:string ;
+    rdfs:label "unit" ;
+    rdfs:comment "ISO 80000 unit symbol of the threshold." .
+
+req:condition a owl:DatatypeProperty ;
+    schema:domainIncludes req:AcceptanceCriterion ;
+    rdfs:range xsd:string ;
+    rdfs:label "condition" ;
+    rdfs:comment "Context in which the criterion applies." .
+
+req:asil a owl:ObjectProperty ;
+    schema:domainIncludes req:Requirement ;
+    rdfs:range skos:Concept ;
+    rdfs:label "ASIL" ;
+    rdfs:comment "Automotive Safety Integrity Level (ISO 26262)." .
+
+req:cal a owl:ObjectProperty ;
+    schema:domainIncludes req:Requirement ;
+    rdfs:range skos:Concept ;
+    rdfs:label "CAL" ;
+    rdfs:comment "Cybersecurity Assurance Level (ISO/SAE 21434)." .
+
+req:threatScenario a owl:ObjectProperty ;
+    rdfs:subPropertyOf req:servesOrigin ;
+    schema:domainIncludes req:Requirement ;
+    schema:rangeIncludes req:ThreatScenario ;
+    rdfs:label "threat scenario" ;
+    rdfs:comment "The threat scenario a security requirement counters." .
+
+# ------------------------------------------------- specification, design
+
+req:subject a owl:ObjectProperty ;
+    schema:domainIncludes req:Specification ;
+    schema:rangeIncludes req:DesignElement ;
+    rdfs:label "subject" ;
+    rdfs:comment "The design element a specification is for." .
+
+req:contains a owl:ObjectProperty ;
+    rdfs:subPropertyOf oslc_rm:uses ;
+    schema:domainIncludes req:Specification ;
+    schema:rangeIncludes req:Requirement ;
+    rdfs:label "contains" ;
+    rdfs:comment "A requirement in the specification." .
+
+req:parent a owl:ObjectProperty ;
+    rdfs:subPropertyOf req:partOf ;
+    schema:domainIncludes req:DesignElement ;
+    schema:rangeIncludes req:DesignElement ;
+    rdfs:label "parent" ;
+    rdfs:comment "The design element this one is directly part of." .
+
+req:partOf a owl:ObjectProperty , owl:TransitiveProperty ;
+    rdfs:label "part of" ;
+    rdfs:comment "Directly or indirectly part of a design element." .
+
+req:realizes a owl:ObjectProperty ;
+    rdfs:subPropertyOf req:tracesTo ;
+    schema:domainIncludes req:DesignElement ;
+    schema:rangeIncludes req:SolutionConcept ;
+    rdfs:label "realizes" ;
+    rdfs:comment "The solution concept a design element embodies." .
+
+# ------------------------------------------------ satisfaction, evidence
+
+req:requirement a owl:ObjectProperty ;
+    schema:domainIncludes req:Satisfaction ;
+    schema:rangeIncludes req:Requirement ;
+    rdfs:label "requirement" ;
+    rdfs:comment "The requirement a satisfaction claim is about." .
+
+req:by a owl:ObjectProperty ;
+    schema:domainIncludes req:Satisfaction ;
+    schema:rangeIncludes req:DesignElement ;
+    rdfs:label "by" ;
+    rdfs:comment "The design element claimed to satisfy the requirement." .
+
+req:satisfies a owl:ObjectProperty ;
+    rdfs:subPropertyOf req:tracesTo , oslc_rm:satisfies ;
+    owl:inverseOf oslc_rm:satisfiedBy ;
+    rdfs:label "satisfies" ;
+    rdfs:comment "A design element is claimed to satisfy a requirement; asserted by the exporter only for active claims." .
+
+req:atVersion a owl:DatatypeProperty ;
+    rdfs:range xsd:string ;
+    rdfs:label "at version" ;
+    rdfs:comment "Version of the design element a claim or verification is about." .
+
+req:verifies a owl:ObjectProperty ;
+    rdfs:subPropertyOf req:tracesTo ;
+    owl:inverseOf req:verifiedBy ;
+    schema:domainIncludes req:Verification ;
+    schema:rangeIncludes req:Requirement ;
+    rdfs:label "verifies" ;
+    rdfs:comment "A requirement this verification produces evidence for." .
+
+req:verifiedBy a owl:ObjectProperty ;
+    rdfs:subPropertyOf oslc_rm:validatedBy ;
+    rdfs:label "verified by" ;
+    rdfs:comment "A verification of this requirement, whatever its verdict." .
+
+req:item a owl:ObjectProperty ;
+    schema:domainIncludes req:Verification ;
+    schema:rangeIncludes req:DesignElement ;
+    rdfs:label "item" ;
+    rdfs:comment "The design element under verification." .
+
+req:method a owl:ObjectProperty ;
+    schema:domainIncludes req:Verification ;
+    rdfs:range skos:Concept ;
+    rdfs:label "method" ;
+    rdfs:comment "Test (and its narrower kinds), analysis, inspection or demonstration." .
+
+req:result a owl:ObjectProperty ;
+    schema:domainIncludes req:Verification ;
+    rdfs:range skos:Concept ;
+    rdfs:label "result" ;
+    rdfs:comment "Verdict: pass, fail, inconclusive or error." .
+
+req:evidence a owl:AnnotationProperty ;
+    rdfs:label "evidence" ;
+    rdfs:comment "A report, log or test run: an IRI when there is one, otherwise text." .
+
+# --------------------------------------------------------------- provenance
+
+req:approvedOn a owl:DatatypeProperty ;
+    rdfs:range xsd:dateTime ;
+    rdfs:label "approved on" ;
+    rdfs:comment "When the content was accepted; the approver is prov:wasAttributedTo." .
+
+req:externalTool a owl:DatatypeProperty ;
+    rdfs:range xsd:string ;
+    rdfs:label "external tool" ;
+    rdfs:comment "The tool an element was imported from, e.g. reqif or sphinx-needs." .
+
+req:externalID a owl:DatatypeProperty ;
+    rdfs:range xsd:string ;
+    rdfs:label "external ID" ;
+    rdfs:comment "The element's ID in that tool." .
+
+req:sourceNote a owl:DatatypeProperty ;
+    rdfs:range xsd:string ;
+    rdfs:label "source note" ;
+    rdfs:comment "A source of the content that is not an IRI, e.g. a document name." .
+
+# ------------------------------------------------------ computed by the tool
+
+req:isSatisfied a owl:DatatypeProperty ;
+    schema:domainIncludes req:Requirement ;
+    rdfs:range xsd:boolean ;
+    rdfs:label "is satisfied" ;
+    rdfs:comment "Computed by the model tool at export: some active claim, refinement or all children satisfy it. Not stated by anyone." .
+
+req:isVerified a owl:DatatypeProperty ;
+    schema:domainIncludes req:Requirement ;
+    rdfs:range xsd:boolean ;
+    rdfs:label "is verified" ;
+    rdfs:comment "Computed by the model tool at export: every claim's latest verification passed at the claimed version, or through refinement or children. Not stated by anyone." .
+
+req:isCovered a owl:DatatypeProperty ;
+    schema:domainIncludes req:GoalOrigin ;
+    rdfs:range xsd:boolean ;
+    rdfs:label "is covered" ;
+    rdfs:comment "Computed by the model tool at export: an active goal addresses it and every active requirement below is verified. Not stated by anyone." .

@@ -12,6 +12,7 @@ import (
 	"bytes"
 	"embed"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"html/template"
 	"io/fs"
@@ -24,6 +25,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/vanDeventer/Requirements/export"
 	"github.com/vanDeventer/Requirements/req"
 )
 
@@ -34,6 +36,9 @@ var files embed.FS
 type Options struct {
 	Dir string // model directory
 	Git bool   // commit every change to the git repository that holds Dir
+
+	Base    string // IRI prefix for elements in the Turtle export
+	Package string // package name in the SysML export
 }
 
 // Server is the web UI. It implements http.Handler.
@@ -78,6 +83,7 @@ func New(opt Options) (*Server, error) {
 	mux.HandleFunc("GET /new/{kind}", s.newForm)
 	mux.HandleFunc("POST /new/{kind}", s.newSave)
 	mux.HandleFunc("POST /reload", s.reload)
+	mux.HandleFunc("GET /export/{file}", s.export)
 	// Browsers send Sec-Fetch-Site or Origin; this rejects cross-site POSTs,
 	// so another web page can't make the browser edit the model.
 	s.handler = http.NewCrossOriginProtection().Handler(mux)
@@ -453,6 +459,55 @@ func (s *Server) delete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	http.Redirect(w, r, "/kind/"+string(k), http.StatusSeeOther)
+}
+
+// export serves the Turtle or SysML export of the current model.
+func (s *Server) export(w http.ResponseWriter, r *http.Request) {
+	file := r.PathValue("file")
+	ext := filepath.Ext(file)
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	var buf bytes.Buffer
+	var err error
+	var ctype string
+	name := strings.TrimSuffix(file, ext)
+	switch {
+	case file == "model.ttl":
+		err = export.Turtle(&buf, s.m, export.TurtleOptions{Base: s.opt.Base, Computed: true})
+		ctype = "text/turtle; charset=utf-8"
+	case file == "vocab.ttl":
+		buf.Write(export.Ontology())
+		ctype = "text/turtle; charset=utf-8"
+	case file == "shapes.ttl":
+		err = export.Shapes(&buf, s.m, export.ShapesOptions{Base: s.opt.Base, Structure: true})
+		ctype = "text/turtle; charset=utf-8"
+	case file == "gaps.ttl":
+		err = export.Shapes(&buf, s.m, export.ShapesOptions{Base: s.opt.Base, Gaps: true})
+		ctype = "text/turtle; charset=utf-8"
+	case file == "model.sysml":
+		err = export.SysML(&buf, s.m, export.SysMLOptions{Package: s.opt.Package})
+		ctype = "text/plain; charset=utf-8"
+	default:
+		s.message(w, http.StatusNotFound, "Not found", "Exports are model.ttl, model.sysml, vocab.ttl, shapes.ttl and gaps.ttl.", nil)
+		return
+	}
+	if name == "model" {
+		name = filepath.Base(s.opt.Dir)
+	}
+	if err != nil {
+		var details []string
+		var ie *export.InvalidError
+		if errors.As(err, &ie) {
+			for _, i := range ie.Issues {
+				details = append(details, i.String())
+			}
+		}
+		s.message(w, http.StatusUnprocessableEntity, "Not exported", err.Error(), details)
+		return
+	}
+	w.Header().Set("Content-Type", ctype)
+	w.Header().Set("Content-Disposition", `attachment; filename="`+name+ext+`"`)
+	buf.WriteTo(w)
 }
 
 // reload rereads the model from disk, e.g. after a git pull.

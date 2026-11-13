@@ -118,32 +118,51 @@ Arrows point the way the Go field points: a Goal holds the IDs of what it addres
 
 ### Mapping to Turtle and SysML v2
 
-`req:` is our own namespace, with `req:Requirement rdfs:subClassOf oslc_rm:Requirement`.
+`req:` is our own namespace, with `req:Requirement rdfs:subClassOf oslc_rm:Requirement` and `req:refines` transitive. Element IRIs are a chosen base plus the ID; concept IRIs are the base plus `scheme/<scheme>/<concept>`, each a `skos:Concept` in a `skos:ConceptScheme`.
+
+In SysML v2, standard constructs carry what the language has words for: `requirement`, `concern`, `satisfy`, `verification`, `#refinement` and `#derivation`. The model's other relations become dependencies tagged with metadata defined in a generated `Vocabulary` package (`#subgoal dependency 'G-001' to 'G-002';`), and concept schemes become enum defs. Every element keeps its ID as its short name.
 
 | Go struct | Key fields | Turtle (.ttl) | SysML v2 (.sysml) |
 | --- | --- | --- | --- |
-| Element | ID, Name, Description | IRI from ID, `rdfs:label`, `dcterms:description` | short name `<'REQ-042'>`, declared name, `doc` |
-| Element | Owner, Status, Version | `req:owner`, `req:status`, `req:version` | `@StatusInfo { owner; status; }` (ModelingMetadata library), version in user-defined `@Version` metadata |
-| Provenance | Sources, GeneratedBy, ApprovedBy, ApprovedOn, ExternalTool, ExternalID | `prov:wasDerivedFrom` the sources, `prov:wasGeneratedBy` an activity `prov:wasAssociatedWith` the model, `prov:wasAttributedTo` the approver; `req:externalTool`, `req:externalID` | user-defined `@Provenance` metadata |
-| Rationale | Text, Assumes, Alternatives | blank node under `req:rationale` with `req:text`, `req:assumes`, `req:alternative` | `@Rationale { text; }`, links in user-defined `@RationaleLinks` metadata |
-| Stakeholder | Role | `req:Stakeholder`, `req:role` | `part def`, referenced as `stakeholder` |
-| Idea | Statement, ProposedBy | `req:Idea`, `req:proposedBy` | `comment` attached to the `concern`s it gave rise to |
-| Need | Statement, HeldBy, Origin | `req:Need`, `req:heldBy`, `req:origin` | `concern` with `stakeholder` members |
-| Goal | Pattern, Soft, Refinement, Subgoals, Addresses | `req:Goal`, `req:pattern`, `req:soft`, `req:subgoal`, `req:addresses` | `requirement` tagged `#Goal`, subgoals nested, `frame` the addressed `concern` |
-| SolutionConcept | Kind, Addresses, Selected | `req:SolutionConcept` (not `skos:Concept`), `req:addresses`, `req:selected` | `variation part def` with each alternative as a `variant`; the selected one tagged `#Selected` |
-| Requirement | Text, Context, Form, Concerns | `req:text`, `req:context`, `req:form`, `req:concern` (SKOS concepts) | `requirement` with `doc`, user-defined `@Classification` metadata |
-| Requirement | Operationalizes, Children, Concept | `req:operationalizes`, `req:child`, `req:presumes` | nested under its Goal, nested requirements, user-defined `@Concept` metadata |
-| Requirement | Refines | `req:refines` | `#refinement` dependency |
-| Requirement | DerivedFrom | `req:derivedFrom` (to the DesignElement) | `#derivation` connection from each requirement the DesignElement satisfies to this one; `@Rationale` names the DesignElement |
-| Goal, Requirement | Assumes | `req:assumes` | `assume constraint` using the Assumption's `constraint def` |
-| AcceptanceCriterion | Metric, Operator, Threshold, Unit, Condition | blank node under `req:criterion` | `require constraint { metric <= threshold }` |
-| Assumption | Kind, Text | `req:Assumption`, `req:kind`, `req:text` | `constraint def` with `doc` |
-| SafetyAttrs / SecurityAttrs | ASIL, CAL, ThreatScenario | `req:asil`, `req:cal`, `req:threatScenario` | user-defined `@Safety` / `@Security` metadata |
-| Hazard, ThreatScenario, StandardClause | Source; Standard, Edition, Clause | IRIs, possibly in an external graph | `item def` or metadata reference |
-| Specification | Contains, Subject | `req:Specification`, `req:contains`, `req:subject` | `requirement def` with `subject` and nested `require` |
-| DesignElement | Kind, Parent, Realizes | `req:DesignElement`, `req:parent`, `req:realizes` | `part def` / `part`; realization as a `dependency` tagged `#realization` |
-| Satisfaction | Requirement, By, Owner (claimant), AtVersion, Date | `req:Satisfaction` node, plus a direct `oslc_rm:satisfiedBy` triple | `satisfy REQ by part;`, claim data as metadata |
-| Verification | Verifies, Item, Method, Result, Evidence, AtVersion | `req:Verification`, `req:verifies`, `req:item`, `req:method`, `req:result`, `req:evidence` | `verification` with `subject` item and `objective { verify REQ; }`, verdict as `VerdictKind` |
+| Element | ID, Name, Description | IRI from ID, `dcterms:identifier`, `rdfs:label`, `dcterms:description` | short name `<'REQ-042'>`, declared name, `doc` or `comment` |
+| Element | Owner, Status, Version | `req:owner`, `req:status`, `req:version` | `#owner` dependency; `@Lifecycle { status; version; }` |
+| Rationale | Text, Assumes, Alternatives | blank node under `req:rationale` with `req:text`, `req:assumes`, `req:alternative` | `@Rationale { text; }` (ModelingMetadata); `#assumes` and `#alternative` dependencies |
+| Provenance | Sources, GeneratedBy, ApprovedBy, ApprovedOn, ExternalTool, ExternalID | `prov:wasDerivedFrom` the sources that are IRIs (`req:sourceNote` for the rest), `prov:wasGeneratedBy` an activity `prov:wasAssociatedWith` the model, `prov:wasAttributedTo` the approver; `req:approvedOn`, `req:externalTool`, `req:externalID` | `@ProvenanceInfo`; `#approvedBy` dependency |
+| Stakeholder | Role | `req:Stakeholder`, `req:role` | `#Stakeholder part def` with `@RoleInfo` |
+| Idea | Statement, ProposedBy | `req:Idea`, `req:statement`, `req:proposedBy` | `comment`; `#proposedBy` dependency |
+| Need | Statement, HeldBy, Origin | `req:Need`, `req:statement`, `req:heldBy`, `req:origin` | `concern` with `doc` and `stakeholder` members; `#origin` dependency to the idea |
+| Goal | Pattern, Soft, Refinement, Subgoals, Addresses | `req:Goal`, `req:pattern`, `req:soft`, `req:refinement`, `req:subgoal`, `req:addresses` | `#Goal requirement` with `@GoalInfo`; `#subgoal` and `#addresses` dependencies |
+| SolutionConcept | Kind, Addresses, Selected | `req:SolutionConcept` (not `skos:Concept`), `req:kind`, `req:conceptFor` (not `req:addresses`, which is only for goals), `req:selected` | `#SolutionConcept part def` with `@ConceptInfo { kind; selected; }`; `#addresses` dependency |
+| Requirement | Text, Context, Form, Concerns | `req:text`, `req:context`, `req:form`, `req:concern` (SKOS concepts) | `requirement` with `doc` and `@Classification` |
+| Requirement | Operationalizes, Children, Concept | `req:operationalizes`, `req:child`, `req:presumes` | `#operationalizes`, `#child` and `#presumes` dependencies |
+| Requirement | Refines | `req:refines` | `#refinement` dependency (ModelingMetadata) |
+| Requirement | DerivedFrom | `req:derivedFrom` (to the DesignElement) | `#derivation` connection (RequirementDerivation) from each requirement the DesignElement satisfies to this one |
+| Goal, Requirement | Assumes | `req:assumes` | `assume constraint` typed by the Assumption's `constraint def` |
+| AcceptanceCriterion | Metric, Operator, Threshold, Unit, Condition | blank node under `req:criterion`, threshold as `xsd:decimal` | an `attribute` per metric and `require constraint { 'metric' <= threshold }`, unit and condition in `@CriterionInfo` |
+| Assumption | Kind, Text | `req:Assumption`, `req:kind`, `req:text` | `constraint def` with `doc` and `@AssumptionInfo` |
+| SafetyAttrs / SecurityAttrs | ASIL, CAL, ThreatScenario | `req:asil`, `req:cal`, `req:threatScenario` | `@SafetyInfo`, `@SecurityInfo`; `#threatScenario` dependency |
+| Hazard, ThreatScenario, StandardClause | Source; Standard, Edition, Clause | `req:source`; `req:standard`, `req:edition`, `req:clause` | `#Hazard`, `#ThreatScenario`, `#StandardClause item def` with `@SourceInfo` or `@ClauseInfo` |
+| Specification | Contains, Subject | `req:Specification`, `req:contains`, `req:subject` | `#Specification requirement def`; `#contains` and `#specSubject` dependencies |
+| DesignElement | Kind, Parent, Realizes | `req:DesignElement`, `req:kind`, `req:parent`, `req:realizes` | `part` usages nested by Parent, with `@DesignInfo`; `#realization` dependency |
+| Satisfaction | Requirement, By, Owner (claimant), AtVersion, Date | `req:Satisfaction` node, plus a direct `oslc_rm:satisfiedBy` triple for active claims | `satisfy 'REQ' by 'DE-1'::'DE-2' { @ClaimInfo }`; rejected and obsolete claims are left out |
+| Verification | Verifies, Item, Method, Result, Evidence, AtVersion | `req:Verification`, `req:verifies`, `req:item`, `req:method`, `req:result`, `req:evidence` | `verification` with `objective { verify 'REQ'; }` and `@VerificationInfo` (verdict from the model's scheme); `#verifiedItem` dependency |
+
+The SysML output is checked by the tests for balanced structure and resolvable names, not yet by a SysML v2 parser; run it through the SysML v2 Pilot Implementation or another conforming tool before relying on it.
+
+### Ontology and shapes
+
+The `req:` vocabulary is an OWL 2 RL ontology (`req export ontology`), so rule engines such as GraphDB's owl2-rl rulesets can reason with it. Each part of the work is done by the tool suited to it:
+
+| Question | Done by | Why |
+| --- | --- | --- |
+| What does this trace to, what serves this hazard? | The ontology: inverses, transitive `req:tracesTo` (any path) and `req:contributesTo` (goal path), and the chain `contributesTo ∘ addresses ⊑ servesOrigin` | Open-world inference adds links; it never needs to know that something is missing |
+| Is the data well formed? | SHACL structural shapes (`req export shapes`), installed in the store | Closed-world rules; the store rejects a bad write |
+| What is incomplete? | SHACL gap shapes (`req export gaps`), run on demand | Warnings, not errors; installed, they would block every write |
+| Is it satisfied, verified, covered? | The Go model, exported as `req:isSatisfied`, `req:isVerified`, `req:isCovered` | Depends on dates, versions and "latest"; kept in deterministic code |
+
+`req:servesOrigin` matches the model's coverage relation, and `req:tracesTo` its trace, so graph queries and the tool give the same answers. Both were checked in GraphDB against the example.
+
+Links between elements have no `rdfs:domain` or `rdfs:range`. A reasoner turns a link to the wrong kind of element into a false type: with a range of Goal on `operationalizes`, a requirement that wrongly operationalizes another requirement is inferred to be a goal, and the SHACL class check, which sees inferred types, then passes. The intended kinds are documented with `schema:domainIncludes` and `schema:rangeIncludes`, which carry no inference, and enforced by the shapes. Properties whose values are sometimes IRIs and sometimes text (`req:evidence`, `req:source`) are annotation properties, as OWL requires.
 
 ### Go sketch
 

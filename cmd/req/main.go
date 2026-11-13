@@ -19,12 +19,20 @@
 //	import FORMAT FILE
 //	                 import requirements from reqif (.reqif or .reqifz) or
 //	                 sphinx-needs (needs.json); needs -context
+//	export ttl|sysml|ontology|shapes|gaps
+//	                 write the model as RDF Turtle (with computed verdicts
+//	                 unless -computed=false) or SysML v2 text; the req:
+//	                 ontology (OWL 2 RL); or SHACL shapes: structural rules
+//	                 to install in a store, or gap checks to run on demand.
+//	                 To -o or standard output; -base sets the IRI prefix
+//	                 and -package the SysML package name
 //	serve            web UI on -addr (default 127.0.0.1:8080); with -git,
 //	                 every save is committed
 package main
 
 import (
 	"encoding/json"
+	"errors"
 	"flag"
 	"fmt"
 	"net/http"
@@ -34,6 +42,7 @@ import (
 	"time"
 
 	"github.com/vanDeventer/Requirements/exchange"
+	"github.com/vanDeventer/Requirements/export"
 	"github.com/vanDeventer/Requirements/req"
 	"github.com/vanDeventer/Requirements/web"
 )
@@ -47,8 +56,12 @@ func main() {
 	dryRun := flag.Bool("n", false, "import: show what would change without writing")
 	addr := flag.String("addr", "127.0.0.1:8080", "serve: address to listen on")
 	useGit := flag.Bool("git", false, "serve: commit every change to git")
+	outFile := flag.String("o", "", "export: output file (default standard output)")
+	baseIRI := flag.String("base", export.DefaultBase, "export, serve: IRI prefix for elements in Turtle")
+	pkgName := flag.String("package", "Requirements", "export, serve: SysML package name")
+	computed := flag.Bool("computed", true, "export ttl: add the computed verdicts (isSatisfied, isVerified, isCovered)")
 	flag.Usage = func() {
-		fmt.Fprintln(os.Stderr, "usage: req [-m dir] [-json] check | get ID | find WORDS | trace ID | impact ID | evidence ID | unverified [SPEC] | coverage ID | gate [SPEC] | import reqif|sphinx-needs FILE | serve")
+		fmt.Fprintln(os.Stderr, "usage: req [-m dir] [-json] check | get ID | find WORDS | trace ID | impact ID | evidence ID | unverified [SPEC] | coverage ID | gate [SPEC] | import reqif|sphinx-needs FILE | export ttl|sysml|ontology|shapes|gaps | serve")
 		flag.PrintDefaults()
 	}
 	flag.Parse()
@@ -234,8 +247,42 @@ func main() {
 		if err := res.Save(*dir); err != nil {
 			fail(err)
 		}
+	case "export":
+		if len(args) != 1 {
+			fmt.Fprintln(os.Stderr, "usage: req [-m dir] [-o file] [-base IRI] [-package name] export ttl|sysml|ontology|shapes|gaps")
+			os.Exit(2)
+		}
+		var buf strings.Builder
+		var err error
+		switch args[0] {
+		case "ttl":
+			err = export.Turtle(&buf, m, export.TurtleOptions{Base: *baseIRI, Computed: *computed})
+		case "sysml":
+			err = export.SysML(&buf, m, export.SysMLOptions{Package: *pkgName})
+		case "ontology":
+			buf.Write(export.Ontology())
+		case "shapes":
+			err = export.Shapes(&buf, m, export.ShapesOptions{Base: *baseIRI, Structure: true})
+		case "gaps":
+			err = export.Shapes(&buf, m, export.ShapesOptions{Base: *baseIRI, Gaps: true})
+		default:
+			fmt.Fprintf(os.Stderr, "req export: unknown format %q\n", args[0])
+			os.Exit(2)
+		}
+		var ie *export.InvalidError
+		if errors.As(err, &ie) {
+			printIssues("errors", ie.Issues)
+		}
+		if err != nil {
+			fail(err)
+		}
+		if *outFile == "" {
+			fmt.Print(buf.String())
+		} else if err := os.WriteFile(*outFile, []byte(buf.String()), 0o644); err != nil {
+			fail(err)
+		}
 	case "serve":
-		srv, err := web.New(web.Options{Dir: *dir, Git: *useGit})
+		srv, err := web.New(web.Options{Dir: *dir, Git: *useGit, Base: *baseIRI, Package: *pkgName})
 		if err != nil {
 			fail(err)
 		}

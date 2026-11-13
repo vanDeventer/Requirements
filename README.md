@@ -38,6 +38,39 @@ go run ./cmd/req -m example/ota find parking brake
 
 Add `-json` for machine-readable output.
 
+## Export
+
+```
+go run ./cmd/req -m example/ota -base https://your.org/req/ -o model.ttl export ttl
+go run ./cmd/req -m example/ota -package 'OTA update' -o model.sysml export sysml
+```
+
+The Turtle export uses the `req:` vocabulary with OSLC RM, W3C PROV, SKOS
+and Dublin Core terms, and adds the verdicts the tool computes
+(`req:isSatisfied`, `req:isVerified`, `req:isCovered`; turn off with
+`-computed=false`). Set `-base` to an IRI prefix you own; element IRIs are
+the prefix plus the element ID. The SysML v2 export is for reading and
+analysis in SysML v2 tools and is export-only. Both refuse a model with
+structural errors. The web UI offers all exports as downloads.
+
+### Into a graph store
+
+```
+req -m MODEL -o vocab.ttl export ontology   # OWL 2 RL: inverses, transitive trace links, coverage chain
+req -m MODEL -o shapes.ttl export shapes    # SHACL rules that reject malformed writes
+req -m MODEL -o gaps.ttl export gaps        # SHACL completeness checks, as warnings
+req -m MODEL -o model.ttl export ttl
+```
+
+In GraphDB, use a repository with an OWL 2 RL ruleset and SHACL enabled.
+Load `shapes.ttl` into the graph `http://rdf4j.org/schema/rdf4j#SHACLShapeGraph`,
+then `vocab.ttl` and `model.ttl`. Run `gaps.ttl` on demand through
+`POST /rest/repositories/{id}/validate/text` rather than installing it:
+GraphDB rejects transactions on warnings too. With the ontology loaded,
+`?r req:servesOrigin :HAZ-001` lists what serves a hazard, the same set the
+tool's coverage uses, and `?x req:tracesTo :NEED-001` follows every trace
+link.
+
 ## Web UI
 
 ```

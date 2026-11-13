@@ -87,6 +87,12 @@ func TestPages(t *testing.T) {
 		{"/e/REQ-001/edit", 200, []string{"<textarea", "&#34;id&#34;: &#34;REQ-001&#34;", "one of", "<code>product</code>"}},
 		{"/new/Assumption", 200, []string{"&#34;text&#34;: &#34;&#34;"}},
 		{"/static/style.css", 200, []string{"--bg"}},
+		{"/export/model.ttl", 200, []string{"oslc_rm:satisfiedBy"}},
+		{"/export/model.sysml", 200, []string{"satisfy 'REQ-001'"}},
+		{"/export/model.xml", 404, nil},
+		{"/export/vocab.ttl", 200, []string{"owl:Ontology"}},
+		{"/export/shapes.ttl", 200, []string{"sh:Violation"}},
+		{"/export/gaps.ttl", 200, []string{"sh:Warning"}},
 	} {
 		code, body := get(t, s, c.path)
 		if code != c.code {

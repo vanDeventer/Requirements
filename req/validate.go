@@ -51,6 +51,9 @@ func (m *Model) Validate() []Issue {
 	}
 
 	for _, s := range m.schemes {
+		if !ValidID(s.ID) {
+			add(Ref(s.ID), "id", "scheme id must match [A-Za-z][A-Za-z0-9-]*")
+		}
 		seen := map[string]bool{}
 		for _, c := range s.Concepts {
 			if !ValidID(c.ID) {
