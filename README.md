@@ -64,7 +64,9 @@ req -m MODEL -o model.ttl export ttl
 
 In GraphDB, use a repository with an OWL 2 RL ruleset and SHACL enabled.
 Load `shapes.ttl` into the graph `http://rdf4j.org/schema/rdf4j#SHACLShapeGraph`,
-then `vocab.ttl` and `model.ttl`. Run `gaps.ttl` on demand through
+then `vocab.ttl`, then `model.ttl`, each in its own import or transaction:
+GraphDB applies the property chain behind `req:servesOrigin` only when the
+ontology is committed before the data. Run `gaps.ttl` on demand through
 `POST /rest/repositories/{id}/validate/text` rather than installing it:
 GraphDB rejects transactions on warnings too. With the ontology loaded,
 `?r req:servesOrigin :HAZ-001` lists what serves a hazard, the same set the
