@@ -3,7 +3,7 @@
 A requirements model for software-defined vehicles, kept as files in git and
 checked and queried by Go code that uses only the standard library. The
 vocabulary and the design decisions are in
-[Requirements Vocabulary Semantics and Relationships.md](Requirements%20Vocabulary%20Semantics%20and%20Relationships.md).
+[docs/requirements-model.md](docs/requirements-model.md).
 
 ## Model files
 

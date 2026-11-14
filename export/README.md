@@ -27,4 +27,4 @@ The SysML output is checked for structure and resolvable names but not yet
 by a SysML v2 parser.
 
 Mapping details are in the vocabulary document's
-[mapping section](../Requirements%20Vocabulary%20Semantics%20and%20Relationships.md#mapping-to-turtle-and-sysml-v2).
+[mapping section](../docs/requirements-model.md#mapping-to-turtle-and-sysml-v2).

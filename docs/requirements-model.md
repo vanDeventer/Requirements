@@ -1,6 +1,6 @@
 # Requirements Vocabulary: Semantics and Relationships
 
-Nov 12, 2026 · @Jan
+Nov 13, 2026 · @Jan
 
 These words sit on two different axes, and much of the confusion around them comes from mixing the axes up. One axis runs from vague to precise, which is the thing that matters when refining. The other runs from the problem ("what is wanted") to the solution ("what is built"). A third complication is that the three "-tion" words each have several readings.
 
@@ -37,15 +37,15 @@ In requirements work, sense 2 usually sits between the idea and the requirements
 
 **Rationale.** Why a goal, requirement or design decision exists or was chosen over the alternatives. It links an element to the reasoning behind it, and often to the assumptions it depends on. When something changes, rationale shows what else becomes questionable. Typical modifiers: *design rationale*, *decision rationale*.
 
-**Realization.** The relation in which something concrete embodies something abstract. UML uses it exactly this way, as a dependency between a specification and whatever fulfills it. It can also mean the act of realizing, or the result (a physical realization).
+**Realization.** The relation in which something concrete embodies something abstract. UML uses it for a dependency between a specification and whatever fulfills it. This model uses it more narrowly: a design element *realizes* the solution concept it embodies. That an implementation meets a specification is already said, more precisely, by its satisfaction claims on the specification's requirements, so the model doesn't repeat it as a realization. It can also mean the act of realizing, or the result (a physical realization).
 
 **Implementation.** The concrete artifact (code, hardware, a deployed service), or the act of building it. Common modifiers: *reference implementation*, *partial implementation*, *prototype implementation*.
 
 ## How they relate
 
-Requirements are the hub: ideas reach them through needs and goals, a chosen concept constrains them, specifications group them, and implementations claim to satisfy them.
+Requirements are the hub: ideas reach them through needs and goals, a chosen concept constrains them, specifications group them, and implementations claim to satisfy them. An idea can also be explored directly as a concept, since ideas often carry a "how"; the implementation then realizes the concept, and a specification states what that implementation has to meet.
 
-&#91;embedded content: relations between the terms · 8 kinds, 10 relations\]
+![Relations between the terms](figures/term-relations.svg)
 
 Three points matter for tracking how requirements are met.
 
@@ -53,7 +53,7 @@ Three points matter for tracking how requirements are met.
 
 **Satisfy, verify and validate are three different things.** *Satisfies* is a claim that this implementation meets this requirement. *Verified by* is the evidence for that claim (a test, an analysis, an inspection). *Validation* asks whether the requirement was the right one, by tracing it back to the need or idea. Tracking satisfaction needs all three, and claims must stay separate from evidence.
 
-**The "-tion" words are ambiguous.** Specification, realization and implementation each have an act reading, an artifact reading and (for realization) a relation reading. In an ontology, make *Implementation* and *Specification* classes (artifacts), make *realizes* an object property, and model the activities as separate processes if needed.
+**The "-tion" words are ambiguous.** Specification, realization and implementation each have an act reading, an artifact reading and (for realization) a relation reading. In an ontology, make *Implementation* and *Specification* classes (artifacts), make *realizes* an object property (here from a design element to the solution concept it embodies), and model the activities as separate processes if needed.
 
 ## Existing vocabularies
 
@@ -112,7 +112,7 @@ A low-risk start is export-only, with the model kept ready for split ownership: 
 
 Requirement is the central struct for the SDV model: other structs either feed it, are owned by it, or link to it through a struct of their own. Go is the source of truth; `.ttl` and `.sysml` are generated from it.
 
-&#91;embedded content: SDV requirements data model · 13 classes\]
+![SDV requirements data model](figures/data-model.svg)
 
 Arrows point the way the Go field points: a Goal holds the IDs of what it addresses, and a Satisfaction holds the IDs of both the Requirement and the DesignElement. Besides a Need, `Goal.addresses` can point to a hazard (from a HARA), a threat scenario (from a TARA) or a clause of a standard or regulation, so Need is one origin of goals among several.
 
@@ -132,7 +132,7 @@ In SysML v2, standard constructs carry what the language has words for: `require
 | Idea | Statement, ProposedBy | `req:Idea`, `req:statement`, `req:proposedBy` | `comment`; `#proposedBy` dependency |
 | Need | Statement, HeldBy, Origin | `req:Need`, `req:statement`, `req:heldBy`, `req:origin` | `concern` with `doc` and `stakeholder` members; `#origin` dependency to the idea |
 | Goal | Pattern, Soft, Refinement, Subgoals, Addresses | `req:Goal`, `req:pattern`, `req:soft`, `req:refinement`, `req:subgoal`, `req:addresses` | `#Goal requirement` with `@GoalInfo`; `#subgoal` and `#addresses` dependencies |
-| SolutionConcept | Kind, Addresses, Selected | `req:SolutionConcept` (not `skos:Concept`), `req:kind`, `req:conceptFor` (not `req:addresses`, which is only for goals), `req:selected` | `#SolutionConcept part def` with `@ConceptInfo { kind; selected; }`; `#addresses` dependency |
+| SolutionConcept | Kind, Addresses, Origin, Selected | `req:SolutionConcept` (not `skos:Concept`), `req:kind`, `req:conceptFor` (not `req:addresses`, which is only for goals), `req:origin`, `req:selected` | `#SolutionConcept part def` with `@ConceptInfo { kind; selected; }`; `#conceptFor` dependency to the goals, `#origin` dependency to the ideas |
 | Requirement | Text, Context, Form, Concerns | `req:text`, `req:context`, `req:form`, `req:concern` (SKOS concepts) | `requirement` with `doc` and `@Classification` |
 | Requirement | Operationalizes, Children, Concept | `req:operationalizes`, `req:child`, `req:presumes` | `#operationalizes`, `#child` and `#presumes` dependencies |
 | Requirement | Refines | `req:refines` | `#refinement` dependency (ModelingMetadata) |
@@ -145,7 +145,7 @@ In SysML v2, standard constructs carry what the language has words for: `require
 | Specification | Contains, Subject | `req:Specification`, `req:contains`, `req:subject` | `#Specification requirement def`; `#contains` and `#specSubject` dependencies |
 | DesignElement | Kind, Parent, Realizes | `req:DesignElement`, `req:kind`, `req:parent`, `req:realizes` | `part` usages nested by Parent, with `@DesignInfo`; `#realization` dependency |
 | Satisfaction | Requirement, By, Owner (claimant), AtVersion, Date | `req:Satisfaction` node, plus a direct `oslc_rm:satisfiedBy` triple for active claims | `satisfy 'REQ' by 'DE-1'::'DE-2' { @ClaimInfo }`; rejected and obsolete claims are left out |
-| Verification | Verifies, Item, Method, Result, Evidence, AtVersion | `req:Verification`, `req:verifies`, `req:item`, `req:method`, `req:result`, `req:evidence` | `verification` with `objective { verify 'REQ'; }` and `@VerificationInfo` (verdict from the model's scheme); `#verifiedItem` dependency |
+| Verification | Verifies, Item, Method, Result, Evidence, AtVersion, Date | `req:Verification`, `req:verifies`, `req:item`, `req:method`, `req:result`, `req:evidence` | `verification` with `objective { verify 'REQ'; }` and `@VerificationInfo` (verdict from the model's scheme); `#verifiedItem` dependency |
 
 The SysML output is checked by the tests for balanced structure and resolvable names, not yet by a SysML v2 parser; run it through the SysML v2 Pilot Implementation or another conforming tool before relying on it.
 
@@ -235,6 +235,7 @@ type SolutionConcept struct {
 	Element
 	Kind      Ref   // operational, system
 	Addresses []Ref // Goal
+	Origin    []Ref // Idea the concept was explored from
 	Selected  bool  // alternatives stay in the model with Selected false
 }
 
@@ -344,7 +345,7 @@ type Verification struct {
 - Assumptions attach to Goals as well as Requirements, because AND-refinement of a goal has the same completeness check as decomposition of a requirement.
 - `DerivedFrom` points to the DesignElement, which is the cause. SysML's derivation links requirements to requirements, so the export connects the requirements that the DesignElement satisfies to the derived one. If the DesignElement satisfies nothing, the derivation can't be exported, and the exporter reports it as an error.
 - Every requirement states its context: tool, product or training-data. A requirement's children and refinements must share its context, and the completeness checks report any that don't. Derivation may cross contexts: choosing an ML model for a product function is what gives rise to requirements on its training data.
-- AI-generated content records the model and version that produced it, and it counts as approved only with a named approver. This is the human oversight the EU AI Act asks for, and the provenance maps to W3C PROV.
+- AI-generated content records the model and version that produced it, and it counts as approved only with a named approver. This supports the human oversight that the EU AI Act requires of high-risk AI systems (Article 14); for an engineering tool that isn't high-risk, it's good practice rather than an obligation. The provenance maps to W3C PROV.
 - Requirements from other tools are imported, not retyped: ReqIF covers DOORS, Polarion, Codebeamer and Jama, and Sphinx-Needs exports `needs.json`. An imported element keeps its tool and external ID, so a re-import updates it. If the text changed in the tool, the status goes back to proposed and the approval is cleared. Only text, name, grouping and refinement are imported. The partner tool stays the source of the wording; this model owns the trace links, where they can be checked.
 - Verdicts are computed, never judged by a language model: satisfied, verified, covered and the completeness gaps all follow from the records. That keeps the tool-qualification argument (ISO 26262-8 tool confidence level) about deterministic code, with the LLM limited to proposing changes that a person accepts.
 - Impact works on any element. For a clause revised in a new edition, it lists the goals and requirements to review. The release gate (`req gate`) fails on structural errors or unverified requirements, so CI can enforce release readiness.
@@ -364,7 +365,7 @@ Standards enter the model in two ways: some shape the method and the export form
 | W3C RDF and SKOS; OASIS OSLC RM | Graph format, concept schemes, requirement link vocabulary | `.ttl` export; form, concern and status schemes |
 | W3C PROV | Provenance of data and artifacts | `Element.Provenance` in the `.ttl` export |
 | OMG ReqIF 1.2 | Requirements exchange between tools | Import from DOORS, Polarion, Codebeamer, Jama |
-| Automotive SPICE, with the ML and data-management extensions | Process capability, including bidirectional traceability and consistency between levels | The trace graph; validation and completeness checks as consistency evidence |
+| Automotive SPICE 4.0, including machine learning engineering (MLE) and ML data management (SUP.11) | Process capability, including bidirectional traceability and consistency between levels | The trace graph; validation and completeness checks as consistency evidence |
 | ISO 26262-8 | Confidence in software tools (tool confidence level) | Verdicts computed deterministically, never by the LLM |
 
 **SDV content**
@@ -378,7 +379,7 @@ Standards enter the model in two ways: some shape the method and the export form
 | UNECE R156, ISO 24089 | Software update management and engineering | StandardClause → Goal; constraints on over-the-air updates |
 | ISO/PAS 8800 | Safety of AI in road vehicles, including the data sets | ML models and data sets as DesignElements; training-data requirements |
 | ISO/PAS 5112 | Auditing cybersecurity management systems | StandardClause → Goal; Verification as audit evidence |
-| EU AI Act (Regulation (EU) 2024/1689) | Transparency, human oversight and post-market monitoring of AI systems, in the vehicle and in engineering tools | StandardClause → Goal; provenance and approval of AI-generated content |
+| EU AI Act (Regulation (EU) 2024/1689) | For high-risk AI systems, such as AI safety components in vehicles: risk management, data governance, human oversight and post-market monitoring | StandardClause → Goal; provenance and approval of AI-generated content |
 
 What this needs from the model:
 

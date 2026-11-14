@@ -15,8 +15,7 @@
 # rulesets can reason with it. It infers trace shortcuts and types; it does
 # not decide whether a requirement is verified or a model is complete. That
 # is closed-world checking, done by the model tool and by SHACL shapes. The
-# terms are explained in "Requirements Vocabulary Semantics and
-# Relationships.md".
+# terms are explained in docs/requirements-model.md.
 #
 # Links between elements have no rdfs:domain or rdfs:range: a reasoner would
 # turn a link to the wrong kind of element into a false type (a requirement
@@ -223,10 +222,10 @@ req:heldBy a owl:ObjectProperty ;
 
 req:origin a owl:ObjectProperty ;
     rdfs:subPropertyOf req:tracesTo ;
-    schema:domainIncludes req:Need ;
+    schema:domainIncludes req:Need , req:SolutionConcept ;
     schema:rangeIncludes req:Idea ;
     rdfs:label "origin" ;
-    rdfs:comment "The idea a need arose from." .
+    rdfs:comment "The idea a need arose from, or a solution concept was explored from." .
 
 req:source a owl:AnnotationProperty ;
     rdfs:label "source" ;

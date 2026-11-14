@@ -193,6 +193,7 @@ func (x *shapes) structure() {
 		{req.KindSolutionConcept, []prop{
 			{path: "req:kind", max: 1, scheme: "concept-kind"},
 			{path: "req:conceptFor", kinds: k(req.KindGoal)},
+			{path: "req:origin", kinds: k(req.KindIdea)},
 			{path: "req:selected", max: 1, datatype: "xsd:boolean"},
 		}},
 		{req.KindRequirement, []prop{

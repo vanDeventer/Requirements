@@ -259,6 +259,7 @@ func (t *turtle) element(e req.Elem) {
 	case *req.SolutionConcept:
 		ps.add("req:kind", t.concept("concept-kind", e.Kind))
 		ps.add("req:conceptFor", t.refs(e.Addresses)...)
+		ps.add("req:origin", t.refs(e.Origin)...)
 		ps.add("req:selected", strconv.FormatBool(e.Selected))
 	case *req.Requirement:
 		ps.add("req:text", lit(e.Text))

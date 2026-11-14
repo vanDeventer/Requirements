@@ -154,6 +154,7 @@ var helpTexts = map[string]string{
 
 	"SolutionConcept.kind":      "Operational or system concept.",
 	"SolutionConcept.addresses": "The goals this concept is a way of reaching.",
+	"SolutionConcept.origin":    "The ideas it was explored from.",
 	"SolutionConcept.selected":  "Tick for the chosen concept. Alternatives stay unticked.",
 
 	"Requirement.text":            "The requirement itself, as one verifiable statement without design detail, e.g. \"The update manager shall …\".",

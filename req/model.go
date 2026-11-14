@@ -2,7 +2,7 @@
 // storage, structural validation and the queries over the trace graph.
 //
 // The vocabulary and the reasoning behind each type are in
-// "Requirements Vocabulary Semantics and Relationships.md" at the repository root.
+// docs/requirements-model.md.
 package req
 
 import (
@@ -79,6 +79,7 @@ type SolutionConcept struct {
 	Element
 	Kind      Ref   `json:"kind,omitempty"`      // operational, system
 	Addresses []Ref `json:"addresses,omitempty"` // Goal
+	Origin    []Ref `json:"origin,omitempty"`    // Idea the concept was explored from
 	Selected  bool  `json:"selected,omitempty"`  // alternatives stay in the model with Selected false
 }
 

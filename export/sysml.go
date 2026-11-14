@@ -133,7 +133,7 @@ func (x *sysml) ref(id req.Ref) (string, bool) {
 // --- vocabulary ---
 
 var relationTags = []string{
-	"subgoal", "addresses", "operationalizes", "presumes", "child", "assumes", "alternative",
+	"subgoal", "addresses", "conceptFor", "operationalizes", "presumes", "child", "assumes", "alternative",
 	"owner", "origin", "proposedBy", "approvedBy", "realization", "threatScenario",
 	"contains", "specSubject", "verifiedItem",
 }
@@ -567,7 +567,8 @@ func (x *sysml) relations() {
 			dep("subgoal", id, e.Subgoals...)
 			dep("addresses", id, e.Addresses...)
 		case *req.SolutionConcept:
-			dep("addresses", id, e.Addresses...)
+			dep("conceptFor", id, e.Addresses...)
+			dep("origin", id, e.Origin...)
 		case *req.Requirement:
 			dep("operationalizes", id, e.Operationalizes...)
 			dep("presumes", id, e.Concept)

@@ -4,5 +4,6 @@
 	"description": "Overwrite the running software during a dedicated update session.",
 	"status": "rejected",
 	"kind": "system",
-	"addresses": ["G-001"]
+	"addresses": ["G-001"],
+	"origin": ["IDEA-001"]
 }

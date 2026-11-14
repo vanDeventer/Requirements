@@ -9,5 +9,6 @@
 	},
 	"kind": "system",
 	"addresses": ["G-001"],
+	"origin": ["IDEA-001"],
 	"selected": true
 }

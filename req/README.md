@@ -27,4 +27,4 @@ type in [query.go](query.go). Every other part of the system, including the
 language-model tools, takes its verdicts from here.
 
 The vocabulary behind the types is explained in
-[Requirements Vocabulary Semantics and Relationships.md](../Requirements%20Vocabulary%20Semantics%20and%20Relationships.md).
+[docs/requirements-model.md](../docs/requirements-model.md).

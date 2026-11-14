@@ -61,7 +61,10 @@ func links(e Elem) []link {
 			link{"assumes", e.Assumes, []Kind{KindAssumption}, Side},
 		)
 	case *SolutionConcept:
-		ls = append(ls, link{"addresses", e.Addresses, []Kind{KindGoal}, Up})
+		ls = append(ls,
+			link{"addresses", e.Addresses, []Kind{KindGoal}, Up},
+			link{"origin", e.Origin, []Kind{KindIdea}, Up},
+		)
 	case *Requirement:
 		ls = append(ls,
 			link{"operationalizes", e.Operationalizes, []Kind{KindGoal}, Up},

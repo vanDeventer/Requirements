@@ -188,6 +188,8 @@ func TestExampleTrace(t *testing.T) {
 		{From: "G-002", Rel: "addresses", To: "HAZ-001"},
 		{From: "G-001", Rel: "subgoals", To: "G-002"},
 		{From: "NEED-001", Rel: "origin", To: "IDEA-001"},
+		{From: "REQ-001", Rel: "concept", To: "SC-001"},
+		{From: "SC-001", Rel: "origin", To: "IDEA-001"},
 	} {
 		if !has(tr.Up, want.From, want.Rel, want.To) {
 			t.Errorf("Trace(REQ-001).Up lacks %s --%s--> %s", want.From, want.Rel, want.To)

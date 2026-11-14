@@ -565,6 +565,7 @@ func TestComputedAndProvenance(t *testing.T) {
 		{base + "HAZ-001", vocab + "isCovered", "true"},
 		{base + "CL-R156-7-2", vocab + "isCovered", "false"},
 		{base + "SC-001", vocab + "conceptFor", base + "G-001"},
+		{base + "SC-001", vocab + "origin", base + "IDEA-001"},
 		{base + "REQ-007", vocab + "sourceNote", `"Perception data spec, rev. C"`},
 	} {
 		if !hasTriple(ts, w.s, w.p, w.o) {
@@ -628,5 +629,17 @@ func TestShapes(t *testing.T) {
 	}
 	if err := Shapes(&bytes.Buffer{}, m, ShapesOptions{}); err == nil {
 		t.Error("no shape set chosen: want an error")
+	}
+}
+
+// Thresholds are written as plain decimals, never in exponent form, which
+// xsd:decimal doesn't allow.
+func TestDecimal(t *testing.T) {
+	for f, want := range map[float64]string{
+		20: "20", 0.5: "0.5", 1e-7: "0.0000001", 1e21: "1000000000000000000000", -3.25: "-3.25",
+	} {
+		if got := decimal(f); got != `"`+want+`"^^xsd:decimal` {
+			t.Errorf("decimal(%v) = %s", f, got)
+		}
 	}
 }
